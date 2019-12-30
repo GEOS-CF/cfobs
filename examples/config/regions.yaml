@@ -1,0 +1,58 @@
+# Configuration file to specify regions to be used for aggregating observations 
+# For each region, a unique regionID and the 4 edges of the masking box 
+# (minlat, maxlat, minlon, maxlon) must be provided.
+
+North America:
+  region_shortname: "NA"
+  regionID: 1
+  minlat:  15.0
+  maxlat:  90.0
+  minlon: -180.0
+  maxlon: -45.0
+  color: "palegreen"
+
+South America:
+  region_shortname: "SA"
+  regionID: 2
+  minlat: -90.0
+  maxlat:  15.0
+  minlon: -180.0
+  maxlon: -30.0
+  color: "lightskyblue"
+
+Europe:
+  region_shortname: "EU"
+  regionID: 3
+  minlat:  35.0
+  maxlat:  90.0
+  minlon: -30.0
+  maxlon:  35.0
+  color: "plum"
+
+Africa and Middle East:
+  region_shortname: "AF"
+  regionID: 4
+  minlat: -90.0
+  maxlat:  35.0
+  minlon: -30.0
+  maxlon:  60.0
+  color: "orange"
+
+Asia:
+  region_shortname: "AS"
+  regionID: 5
+  minlat: -10.0
+  maxlat:  90.0
+  minlon:  60.0
+  maxlon: 180.0
+  color: "lightcoral"
+
+Australia:
+  region_shortname: "AU"
+  regionID: 6
+  minlat: -90.0
+  maxlat: -10.0
+  minlon: 105.0
+  maxlon: 180.0
+  color: "burlywood"
+

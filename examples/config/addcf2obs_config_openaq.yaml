@@ -1,0 +1,62 @@
+# Configuration file to define how CF output is read and mapped onto 
+# corresponding observations.
+#
+# Below is a list of all CF collections to be read by read_cf.py. For each 
+# collection, the keys `template` and `vars` need to be provided. template 
+# is the file name template (date tokens allowed) and vars list all variable 
+# names to be read. The listed variable name must not correspond to the 
+# variable name on the CF file. Instead, the CF variable name is provided as 
+# key `name_on_file`. A scale factor to be applied to the variable name can 
+# be specified using key `scal`.
+
+# Routine add_cf_to_obs.py will attempt to map all variables listed under
+# collection 'chem' to the corresponding observation type, given under
+# key `obstype`. The obstype refers to the observation type as defined in
+# the various observation reading routine (i.e. read_openaq.py). 
+# The target unit should be provided as key `unit`, and the molecular 
+# weight should be provided for quantitied with target unit ppmv (key `mw`).
+##
+# The surface pressure and 10m temperature should be provided as variables
+# 'ps' and 't10m' to make sure that unit conversions from ug/m3 to ppbv work.
+#  
+
+met:
+  template: 'https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/assim/met_tavg_1hr_g1440x721_x1'
+  vars:
+    ps:
+      name_on_file: 'ps'
+    t10m:
+      name_on_file: 't10m'
+
+chem:
+  template: 'https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/assim/chm_tavg_1hr_g1440x721_v1' 
+  vars: 
+    o3:
+      name_on_file: 'o3'
+      scal: 1.0e+9
+      obstype: 'o3'
+      unit: 'ppbv'
+      mw: 48.0
+    no2:
+      name_on_file: 'no2'
+      scal: 1.0e+9
+      obstype: 'no2'
+      unit: 'ppbv'
+      mw: 46.0
+    co:
+      name_on_file: 'co'
+      scal: 1.0e+9
+      obstype: 'co'
+      unit: 'ppbv'
+      mw: 28.0
+    pm25_gcc:
+      name_on_file: 'pm25_rh35_gcc'
+      scal: 1.0
+      obstype: 'pm25'
+      unit: 'ugm-3'
+    pm25_gocart:
+      name_on_file: 'pm25_rh35_gocar'
+      scal: 1.0e+9
+      obstype: 'pm25'
+      unit: 'ugm-3'
+      modcol_suffix: '_gocart'

@@ -1,0 +1,2 @@
+# first 10'000 entries of OpenAQ observations for Dec 1, 2019, as obtained through:
+aws s3 ls "openaq-fetches/realtime/2019-12-01/" --no-sign-request | awk '{print $4}' | xargs -I'{}' aws s3 cp "s3://openaq-fetches/realtime/2019-12-01/{}" - --no-sign-request >> openaq.2019-12-01.ndjson
