@@ -17,7 +17,7 @@ import numpy as np
 import datetime as dt
 import pandas as pd
 
-import cfobs.read_orig_data.read_openaq as openaq
+import cfobs.read_obs_data.read_openaq as openaq
 #import read_migris as migris
 from .cfobs_save import save as cfobs_save
 from .table_of_stations import update_stations_info 
