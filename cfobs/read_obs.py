@@ -4,9 +4,6 @@
 # 
 # DESCRIPTION:
 # Read observation data to a pandas DataFrame compatible with the cfobs obj.
-# This is the parent function for a list of read functions tailored toward
-# various data sources. Additional read functions can be added to the list
-# of read functions below. 
 
 # HISTORY:
 # 20191220 - christoph.a.keller at nasa.gov - Initial version 
@@ -18,6 +15,7 @@ import datetime as dt
 import pandas as pd
 
 import cfobs.read_obs_data.read_openaq as openaq
+import cfobs.read_obs_data.read_aeronet as aeronet
 #import read_migris as migris
 from .cfobs_save import save as cfobs_save
 from .table_of_stations import update_stations_info 
@@ -30,15 +28,76 @@ from .parse_string import parse_key
 # define read functions here 
 read_functions = {
 #        "migris": migris.read_migris,
-        "openaq": openaq.read
+        "openaq": openaq.read_openaq,
+       "aeronet": aeronet.read_aeronet,
         }
 
 
-def read_obs(obskey,startday,endday=None,read_freq='1D',time_delta=-1,verbose=0,save=False,ofile='output_!k_%Y_%m_%d.csv',return_data=True,stationsfile=None,track_list_of_stations=False,gridres=1.0,append_to_ofile=0,nfloats=-1,**kwargs):
+def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,verbose=0,save=False,ofile='output_!k_%Y_%m_%d.csv',append_to_ofile=False,nfloats=-1,return_data=True,track_list_of_stations=False,stationsfile=None,gridres=1.0,**kwargs):
     '''
     Read native observation data and returns a cfobs-compatible data frame. 
     Also save the data to a csv file if specified so.
+    This function is a generic wrapper that calls down to individual read 
+    functions tailored toward various data sources (e.g., Aeronet, OpenAQ, 
+    etc). If specified so, the read function is called multiple times 
+    between the provided time interval.
+    After calling the read function, this function updates the meta data
+    for each observation point. In particular, it assigns a unique location
+    name to it and also maps all observations onto a regular grid (the original
+    observation location information is preserved).
+
+    All read functions read the observation-type specific data sets and 
+    'translate' them into a Pandas data frame compatible with this module. 
+    The read functions all have the following form:
+       df = function(date=type(dt.datetime),verbose=type(int),**kwargs).
+    The returned Pandas data frame must contain all observations in separate
+    lines, and have at least the following columns:
+    'ISO8601': date and time stamp of the observation in UTC (type dt.datetime)
+    'obstype': observation type identifier (type str)
+    'value': observation (type float)
+    'original_station_name': original station name (type str)
+    'lat' : latitude of observation point, in degrees North (type float)
+    'lon' : longitude of observation point, in degrees East (type float)
+
+    Arguments
+    ---------
+    obskey : str
+        Observation key attribute, specifies which read function is being called.
+    startday : dt.datetime
+        Start day for reading the data.
+    endday : dt.datetime
+        End day for reading the data.
+    read_freq : str
+        How often the read function shall be called between the specified time
+        interval. If set to None, the read function will only be called once.
+    time_delta : int
+        Toss all observations outside the specified time range +/- time_delta.
+        In hours. Only used if >=0.
+    verbose : int
+        verbose mode.
+    save : bool
+        If true, saves the data frame to a csv file.
+    ofile : str
+        File name to save data to. Only used if save set to True.
+    append_to_ofile : bool
+        Append data to existing file. Only used if save set to True.
+    nfloats : int
+        Number of floating points to save. Only used if save set to True.
+        Ignored if negative.
+    return_data : bool
+        Return the data frame with the function.
+    track_list_of_stations : bool
+        If true, write out the meta data of all observation sites into a
+        separate file.
+    stationsfile : str
+        File with stations information. Must be provided if 
+        track_list_of_stations is enabled.
+    gridres : float
+        Resolution of regular grid onto which the observations are mapped onto. 
+    **kwargs : dict
+        Additional arguments passed to the reading function.
     '''
+
     # check if requested observation key exists in funcs and get function for it
     assert(obskey in read_functions.keys()), 'Invalid observation key: {}'.format(obskey)
     readfunc = read_functions.get(obskey)
@@ -54,16 +113,19 @@ def read_obs(obskey,startday,endday=None,read_freq='1D',time_delta=-1,verbose=0,
     # get sequence of days to read
     if endday is None:
         endday = startday
-    daylist = pd.date_range(start=startday,end=endday,freq=read_freq).tolist()
+    if read_freq is None:
+        datelist = [startday]
+    else:
+        datelist = pd.date_range(start=startday,end=endday,freq=read_freq).tolist()
     # prepare return value
     fulldf = pd.DataFrame() if return_data else None
 #---read data day by day
-    for iday in daylist:
+    for idate in datelist:
         if verbose>0:
-            print('working on '+iday.strftime('%Y-%m-%d'))
+            print('working on '+idate.strftime('%Y-%m-%d'))
         sys.stdout.flush()
         # read data based on obs-specific function, as set at the beginning
-        df = readfunc(iday=iday,verbose=verbose,**kwargs)
+        df = readfunc(idate,verbose=verbose,**kwargs)
         if df is None:
             df = pd.DataFrame()
         # remove all invalid entries before writing out
@@ -74,12 +136,12 @@ def read_obs(obskey,startday,endday=None,read_freq='1D',time_delta=-1,verbose=0,
             # update location information
             df, stationstable = update_stations_info(df,stationstable,lats,lons)
             # remove all data outside the provide date range.
-            df = _check_dates(df,iday,verbose,time_delta)
+            df = _check_dates(df,idate,verbose,time_delta)
         else:
-            print('Warning: no data found for '+iday.strftime('%Y-%m-%d'))
+            print('Warning: no data found for '+idate.strftime('%Y-%m-%d'))
         # save to csv file
         if df.shape[0]>0 and save:
-            opened_files = cfobs_save(df=df,file=parse_key(ofile,obskey),iday=iday,opened_files=opened_files,verbose=verbose,append=append_to_ofile,nfloats=nfloats)
+            opened_files = cfobs_save(df=df,file=parse_key(ofile,obskey),iday=idate,opened_files=opened_files,verbose=verbose,append=append_to_ofile,nfloats=nfloats)
         # add to return frame
         if return_data and df.shape[0]>0:
             fulldf = fulldf.append(df)
@@ -89,7 +151,7 @@ def read_obs(obskey,startday,endday=None,read_freq='1D',time_delta=-1,verbose=0,
     return fulldf
 
 
-def _check_dates(df,iday,verbose,time_delta=-1):
+def _check_dates(df,idate,verbose,time_delta=-1):
     '''
     Tosses all observations that are outside the day +- time-delta.
     '''
@@ -98,8 +160,8 @@ def _check_dates(df,iday,verbose,time_delta=-1):
         return df
     # time delta
     delta = dt.timedelta(hours=time_delta)
-    mindate = iday - delta 
-    maxdate = iday + dt.timedelta(hours=24) + delta
+    mindate = idate - delta 
+    maxdate = idate + dt.timedelta(hours=24) + delta
     ncols1 = df.shape[0]
     df = df.loc[(df['ISO8601']>=mindate) & (df['ISO8601']<maxdate)].copy()
     ncols2 = df.shape[0]

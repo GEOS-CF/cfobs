@@ -1,0 +1,14 @@
+cf_config: 
+  configuration_file: "cf_config_aeronet.yaml"
+
+mapping:
+  aod550_gcc:
+    obstype: 'aod550'
+    cfvars: ['aod550_bc','aod550_oc','aod550_dust','aod550_sala','aod550_salc','aod550_sulfate']
+    unit: 'unitless'
+
+#  aod550_gocart:
+#    modcol_suffix: '_gocart'
+#    obstype: 'aod550'
+#    cfvars: 'totexttau'
+#    unit: 'unitless'

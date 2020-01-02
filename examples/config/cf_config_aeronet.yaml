@@ -1,0 +1,25 @@
+# Configuration file for reading GEOS-CF fields. Used by read_cf.py 
+
+chem:
+  template: 'https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/assim/xgc_tavg_1hr_g1440x721_x1'
+  average_offset_before: 12
+  average_offset_after: 12 
+  vars: 
+    aod550_bc:
+      name_on_file: 'aod550_bc'
+    aod550_oc:
+      name_on_file: 'aod550_oc'
+    aod550_dust:
+      name_on_file: 'aod550_dust'
+    aod550_sala:
+      name_on_file: 'aod550_sala'
+    aod550_salc:
+      name_on_file: 'aod550_salc'
+    aod550_sulfate:
+      name_on_file: 'aod550_sulfate'
+
+#aero:
+#  template: '/discover/nobackup/projects/gmao/geos_cf/priv/GEOS-CF_NRT/ana/Y%Y/M%m/D%d/GEOS-CF.v01.rpl.aer_tavg_24hr_g1440x721_x1.%Y%m%d_0000z.nc4'
+#  vars:
+#    totexttau:
+#      name_on_file: 'TOTEXTTAU'
