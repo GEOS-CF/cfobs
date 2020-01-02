@@ -25,7 +25,7 @@ import json
 from ..parse_string import parse_date 
 
 
-def read(iday,json_tmpl,csv_tmpl=None,verbose=0):
+def read_openaq(iday,json_tmpl=None,csv_tmpl=None,verbose=0):
     '''
     Reads the native OpenAQ data file for the given day and returns a cfobs-compatible data frame. 
     '''
@@ -111,7 +111,7 @@ def read_json_line(line,dct):
     if err==0:
         dct['ISO8601'].append(dt.datetime.strptime(utc,'%Y-%m-%dT%H:%M:%S.000Z'))
         dct['localtime'].append(dt.datetime.strptime(lcl[0:19],'%Y-%m-%dT%H:%M:%S'))
-        dct['orig_name'].append(loc)
+        dct['original_station_name'].append(loc)
         dct['country'].append(ctr)
         dct['lat'].append(np.float(lat))
         dct['lon'].append(np.float(lon))
@@ -131,7 +131,7 @@ def read_openaq_ndjson(ifile,verbose):
     # read data into dictionary
     dct = dict({'ISO8601':[],
                 'localtime':[],
-                'orig_name':[],
+                'original_station_name':[],
                 'country':[],
                 'lat':[],
                 'lon':[],
@@ -159,7 +159,7 @@ def read_openaq_ndjson(ifile,verbose):
         # sort data
         df = df.sort_values(by="ISO8601")
         # strip empty spaces
-        df['orig_name'] = [i.replace(" ","") for i in df['orig_name']]
+        df['original_station_name'] = [i.replace(" ","") for i in df['original_station_name']]
     return df,nline,nerr
 
 
@@ -175,7 +175,7 @@ def read_openaq_csv(ifile,verbose):
     df = pd.DataFrame()
     df['ISO8601']   = [dt.datetime.strptime(i,'%Y-%m-%dT%H:%M:%S.000Z') for i in ds['utc']]
     df['localtime'] = [dt.datetime.strptime(i[0:19],'%Y-%m-%dT%H:%M:%S') for i in ds['local']]
-    df['orig_name'] = ds['location'] 
+    df['original_station_name'] = ds['location'] 
     df['country']   = ds['country']
     df['lat']       = [np.float(i) for i in ds['latitude']]
     df['lon']       = [np.float(i) for i in ds['longitude']]
@@ -189,6 +189,6 @@ def read_openaq_csv(ifile,verbose):
         # sort data
         df = df.sort_values(by="ISO8601")
         # strip empty spaces
-        df['orig_name'] = [i.replace(" ","") for i in df['orig_name']]
+        df['original_station_name'] = [i.replace(" ","") for i in df['original_station_name']]
     return df,nline,nerr
 

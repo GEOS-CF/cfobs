@@ -19,13 +19,16 @@ MW_CO   = 28.0   # MW of CO, g mol-1
 PPM2PPB = 1.0e+3 # conversion factor from ppmv to ppbv, unitless
 
 
-def get_conv_ugm3_to_ppbv(temperature,pressure,mw=1.0):
+def get_conv_ugm3_to_ppbv(dat,temperature_name='t10m',pressure_name='ps',mw=1.0):
     '''
     Returns the conversion factor from ug/m3 to ppbv.
-    Expects as inputes the temperature T in kelvin and
-    pressure P in Pa. 
+    Expects as inputs the temperature in kelvin and
+    pressure in Pa. 
     '''
-    return temperature*RCONST*1.0e-6/(pressure*mw)*1.0e9
+    if temperature_name not in dat or pressure_name not in dat:
+        return None
+    else:
+        return dat[temperature_name]*RCONST*1.0e-6/(dat[pressure_name]*mw)*1.0e9
 
 
 def to_ppbv(df,conv_ugm3_to_ppbv=None,convscal=1.0,temp=None,press=None,mw=1.0,

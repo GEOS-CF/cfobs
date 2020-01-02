@@ -1,0 +1,28 @@
+# Configuration file for reading GEOS-CF fields. Used by read_cf.py 
+
+met:
+  template: 'https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/assim/met_tavg_1hr_g1440x721_x1'
+  vars:
+    ps:
+      name_on_file: 'ps'
+    t10m:
+      name_on_file: 't10m'
+
+chem:
+  template: 'https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/assim/chm_tavg_1hr_g1440x721_v1' 
+  vars: 
+    o3:
+      name_on_file: 'o3'
+      scal: 1.0e+9
+    no2:
+      name_on_file: 'no2'
+      scal: 1.0e+9
+    co:
+      name_on_file: 'co'
+      scal: 1.0e+9
+    pm25_gcc:
+      name_on_file: 'pm25_rh35_gcc'
+      scal: 1.0
+    pm25_gocart:
+      name_on_file: 'pm25_rh35_gocar'
+      scal: 1.0e+9

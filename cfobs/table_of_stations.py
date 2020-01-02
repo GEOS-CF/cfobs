@@ -43,7 +43,7 @@ def update_stations_info(df,st,lats,lons):
     # Add dummy station if entry is empty. This makes the handling below easier
     if st.shape[0]==0:
         st['location']          = ['unknown']
-        st['orig_name']         = ['unknown']
+        st['original_station_name']      = ['unknown']
         st['lat']               = [-999.0]
         st['lon']               = [-999.0]
         st['latlon_id']         = [-999.0]
@@ -65,7 +65,7 @@ def update_stations_info(df,st,lats,lons):
     st = st.reset_index()
     df = df.reset_index()
     if len(missing) > 0:
-        idf = df.loc[df['latlon_id'].isin(missing),['orig_name','lat','lon','latlon_id']].groupby(['latlon_id']).min().reset_index()
+        idf = df.loc[df['latlon_id'].isin(missing),['original_station_name','lat','lon','latlon_id']].groupby(['latlon_id']).min().reset_index()
         # Add unique station name. this is simply 'StationXX' where XX is a unique number
         idf['location'] = ['Station'+str(i+nstat).zfill(7) for i in range(idf.shape[0])]
         # Grid data onto grid and assign station name to it.
@@ -81,7 +81,7 @@ def update_stations_info(df,st,lats,lons):
         # Add to stations file
         st = pd.concat([st,idf],sort=True)
         # Eventually remove dummy station
-        st = st.loc[st['orig_name']!='unknown']
+        st = st.loc[st['original_station_name']!='unknown']
     # add extended stations information to main dataset
     df = df.merge(st[['latlon_id','location','location_gridded','lon_gridded','lat_gridded','latlon_id_gridded']],on='latlon_id')
     df = df.sort_values(by="ISO8601")
@@ -95,7 +95,7 @@ def write_table_of_stations(stationstable,stationsfile,obskey=""):
     if stationstable.shape[0]==0:
         return
     ofile = stationsfile.replace('%t',obskey)
-    stationstable = stationstable[['location','lat','lon','latlon_id','orig_name','location_gridded','lat_gridded','lon_gridded','latlon_id_gridded']]
+    stationstable = stationstable[['location','lat','lon','latlon_id','original_station_name','location_gridded','lat_gridded','lon_gridded','latlon_id_gridded']]
     stationstable.to_csv(ofile,index=False,header=True,float_format='%.4f')
     return
 
@@ -106,6 +106,6 @@ def get_lat_lon_of_regular_grid(gridres=1.0):
     '''
     assert(gridres>0.0), 'Invalid grid resolution: {}'.format(gridres)
     gridres_half = gridres / 2.0
-    lats = np.arange(-90.0+gridres_half,90.0-gridres_half,gridres)
-    lons = np.arange(-180.0+gridres_half,180.0-gridres_half,gridres)
+    lats = np.arange(-90.0+gridres_half,90.0,gridres)
+    lons = np.arange(-180.0+gridres_half,180.0,gridres)
     return lats,lons

@@ -11,7 +11,7 @@
 # Entries from a yaml configuration file determine how to map the
 # CF output to the observations. For example, the following entry
 # maps variable O3 from collection chm_tavg_1hr collection to obstype
-# 'pm25':  
+# 'o3':  
 #
 #met:
 #  template: '/discover/nobackup/projects/gmao/geos_cf/pub/GEOS-CF_NRT/ana/Y%Y/M%m/D%d/GEOS-CF.v01.rpl.met_tavg_1hr_g1440x721_x1.%Y%m%d_%H30z.nc4'
@@ -49,24 +49,25 @@
 import numpy as np
 import datetime as dt
 import pandas as pd
+import os
+from tqdm import tqdm
 
-from .read_cf import get_cf_config
+from .systools import load_config 
 from .read_cf import read_cf_data_2d
 from .seasons import set_season
 from .units import get_conv_ugm3_to_ppbv
 from .units import to_ppbv 
 
-def add_cf(df_in,config=None,configfile=None,verbose=1,map_key='chem',modcol='conc_mod',obscol='conc_obs',unitcol='conc_unit'):
+def add_cf(df_in,configfile=None,verbose=1,modcol='conc_mod',obscol='conc_obs',unitcol='conc_unit'):
     '''
     Adds CF output to an (observations) data frame by sampling the data frame by datetime, longitude and latitude and
     read the corresponding CF value. This function currently only aggregates by hours, i.e. all minute information 
     is omitted. 
     '''
+    rc = 0
     if verbose > 0:
         print('Matching CF output to observations...')
-    rc = 0
-    if config is None:
-        config = get_cf_config(configfile)
+    cf_config,map_config = _read_config(verbose,configfile) 
     # 'Round' all time stamps to hours. Will only aggregate by hourly values
     df_in['ISO8601'] = [dt.datetime(i.year,i.month,i.day,i.hour,0,0) for i in df_in['ISO8601']]
     # Check for local time. If it exists, convert to seconds since lowest datetime to ensure proper
@@ -82,8 +83,8 @@ def add_cf(df_in,config=None,configfile=None,verbose=1,map_key='chem',modcol='co
     df[obscol]           = np.zeros((ncol,))*np.nan
     df[unitcol]          = ['unknown' for i in range(ncol)]
     # Loop over all time stamps and add CF data 
-    for idate in list(df['ISO8601'].unique()):
-        rc, df = _add_cf_data_to_df(df,idate,config,map_key,verbose,obscol,modcol,unitcol)
+    for idate in tqdm(list(df['ISO8601'].unique())):
+        rc, df = _add_cf_data_to_df(df,idate,cf_config,map_config,verbose,obscol,modcol,unitcol)
         # error check
         if rc != 0:
             break
@@ -111,7 +112,7 @@ def add_cf(df_in,config=None,configfile=None,verbose=1,map_key='chem',modcol='co
     return df
 
 
-def _add_cf_data_to_df(df,idate,config,map_key,verbose,obscol,modcol,unitcol):
+def _add_cf_data_to_df(df,idate,cf_config,map_config,verbose,obscol,modcol,unitcol):
     '''
     Updates the observation data frame for a given datetime by reading CF data and
     adding the proper CF value to each observation. Also assigns a 'observation value'
@@ -119,24 +120,21 @@ def _add_cf_data_to_df(df,idate,config,map_key,verbose,obscol,modcol,unitcol):
     is labelled 'conc_mod', and the observation value is labelled 'conc_obs'. 
     '''
     # Read CF data, decrease verbose level to avoid excessive statements
-    rc, dat = read_cf_data_2d(idate=idate,config=config,verbose=verbose-1)
+    rc, dat = read_cf_data_2d(idate=idate,config=cf_config,verbose=verbose-1)
     if rc != 0:
         return rc, None
     # Get coordinate values 
     lons = dat['lons'].values
     lats = dat['lats'].values
     # Precompute conversion factor from ugm-3 to ppbv, using MW of 1.0
-    conv = get_conv_ugm3_to_ppbv(dat['t10m'],dat['ps'],1.0)
+    conv = get_conv_ugm3_to_ppbv(dat,'t10m','ps',1.0)
     # Update for all species, use the model <-> observation pairs specified in the
     # configuration file 
-    if map_key not in config:
-        print('Cannot add CF output to observation - keyword {} not found in the configuration file'.format(map_key))
-        return -1, None
-    vars = config.get(map_key).get('vars')
-    for ivar in vars.keys():
-        var_config = vars.get(ivar)
+    for ivar in map_config: 
+        var_config = map_config.get(ivar)
         if 'obstype' not in var_config:
             print('Warning: no obstype defined for {} - skip variable'.format(ivar))
+            continue
         idx = df.index[ (df['ISO8601']==idate) & (df['obstype']==var_config.get('obstype')) ]
         if len(idx)==0:
             continue
@@ -151,11 +149,44 @@ def _add_cf_data_to_df(df,idate,config,map_key,verbose,obscol,modcol,unitcol):
         # only be the case for modcol_suffix values
         if imodcol not in df.keys():
             df[imodcol] = np.zeros((df.shape[0],))*np.nan
-        df.loc[idx,imodcol] = dat[ivar].values[latidx,lonidx]
+        # Add CF variables, ignore NaN's 
+        if 'cfvars' not in var_config:
+            if verbose > 0:
+                print('Warning: no CF variables defined for {} - no CF data will be matched to observations'.format(ivar))
+            continue
+        cfvars = var_config.get('cfvars')
+        if type(cfvars) == type(''):
+            cfvars = [cfvars]
+        for cfvar in cfvars:
+            # set NaN's to zero first
+            nanidx = df.loc[idx].index[np.isnan(df.loc[idx,imodcol])]
+            if len(nanidx)>0:
+                df.loc[nanidx,imodcol] = 0.0 
+            # add CF data
+            df.loc[idx,imodcol] = df.loc[idx,imodcol]+dat[cfvar].values[latidx,lonidx]
         # check for units
         unit = var_config.get('unit','unknown') 
         df.loc[idx,unitcol] = unit
         if unit=='ppbv':
             assert('mw' in var_config), 'Cannot convert to ppbv, please provide `mw` in configuration file: {}'.format(ivar)
+            assert(conv is not None), 'Cannot convert to ppbv, conversion factor does not exist - please specifiy t10m and ps in configuration file'
             df = to_ppbv(df,idx=idx,conv_ugm3_to_ppbv=conv,convscal=1./var_config['mw'])
     return rc, df
+
+
+def _read_config(verbose,configfile):
+    '''
+    Read the configuration file that define the CF variables to be read as well as the mapping between observations and model variables..
+    '''
+    master_config = load_config(configfile)
+    assert('mapping' in master_config), print('key `mapping` must be provided in configuration file {}'.format(configfile))
+    map_config = master_config.get('mapping')
+    assert('cf_config' in master_config), print('key `cf_config` must be provided in configuration file {}'.format(configfile))
+    cf_config = master_config.get('cf_config')
+    if 'configuration_file' in cf_config:
+        cf_configfile = cf_config.get('configuration_file')
+        if not os.path.isfile(cf_configfile):    
+            cf_configfile = '/'.join(configfile.split('/')[:-1])+'/'+cf_configfile
+        cf_config = load_config(cf_configfile)
+    return cf_config,map_config
+

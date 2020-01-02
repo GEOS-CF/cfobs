@@ -16,7 +16,7 @@ import pandas as pd
 from .parse_string import parse_date 
 
 
-def save(df,file,iday,append=0,nfloats=-1,opened_files=[],verbose=1):
+def save(df,file,iday,append=False,nfloats=-1,opened_files=[],verbose=1):
     '''
     Save the dataframe 'df' to a csv file.
     '''
@@ -31,7 +31,7 @@ def save(df,file,iday,append=0,nfloats=-1,opened_files=[],verbose=1):
     # File does exist:
     else:
         # Has this file been previously written in this call? In this case we always need to append it. Same is true if append option is enabled
-        if ofile in opened_files or append==1:
+        if ofile in opened_files or append:
             wm  = 'a'
             hdr = False
         # If this is the first time this file is written and append option is disabled: 
@@ -76,7 +76,7 @@ def _get_new_header(df):
     old_hdr = list(df.keys())
     new_hdr = []
     # check following elements and place them first in new header, remove from old header list once added
-    elements = ['ISO8601','localtime','location','orig_name','country','lat','lon','latlon_id','location_gridded','lat_gridded','lon_gridded','obstype','unit','value']
+    elements = ['ISO8601','localtime','location','original_station_name','country','lat','lon','latlon_id','location_gridded','lat_gridded','lon_gridded','obstype','unit','value']
     for e in elements:   
         if e in old_hdr:
             new_hdr.append(e)

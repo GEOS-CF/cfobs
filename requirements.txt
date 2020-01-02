@@ -6,6 +6,7 @@ sys
 os
 glob
 datetime
+dateutil
 numpy
 pandas
 xarray
@@ -13,3 +14,5 @@ matplotlib
 cartopy
 yaml
 json
+requests
+tqdm

@@ -1,0 +1,31 @@
+# Configuration file to define how CF output is mapped onto OpenAQ observations.
+#
+
+cf_config:
+  configuration_file: 'cf_config_openaq.yaml'
+
+mapping:
+  o3:
+    obstype: 'o3'
+    cfvars: 'o3'
+    unit: 'ppbv'
+    mw: 48.0
+  no2:
+    obstype: 'no2'
+    cfvars: 'no2'
+    unit: 'ppbv'
+    mw: 46.0
+  co:
+    obstype: 'co'
+    cfvars: 'co'
+    unit: 'ppbv'
+    mw: 28.0
+  pm25_gcc:
+    obstype: 'pm25'
+    cfvars: 'pm25_gcc'
+    unit: 'ugm-3'
+  pm25_gocart:
+    obstype: 'pm25'
+    cfvars: 'pm25_gocart'
+    unit: 'ugm-3'
+    modcol_suffix: '_gocart'

@@ -2,8 +2,8 @@
 # ****************************************************************************
 # Do a comparison between GEOS-CF and OpenAQ for Dec 1, 2019. 
 #
-# EXAMPLE:
-# python compare_cf_vs_openaq_example.py 
+# USAGE: 
+# python example_openaq.py 
 #
 # HISTORY:
 # 20191220 - christoph.a.keller at nasa.gov - Initial version 
@@ -27,7 +27,7 @@ openaq_json   = 'data/openaq.%Y-%m-%d.ndjson'
 mapfiles      = 'https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/assim/chm_tavg_1hr_g1440x721_v1' 
 ofile_csv     = 'out/data/openaq_%Y-%m_%d.csv'
 ofile_png     = 'out/figures/openaq_%Y%m%d_!k_!v.png'
-configfile    = 'config/addcf2obs_config_openaq.yaml'
+configfile    = 'config/mapping_openaq.yaml'
 regionsfile   = 'config/regions.yaml'
 
 def get_mapplotspecs(args):
@@ -79,7 +79,7 @@ def main(args):
     # Save to file
     if args.save_csv==1:
         systools.check_dir(ofile_csv,iday)
-        cfob.save( ofile=ofile_csv, append=0, nfloats=4 )
+        cfob.save( ofile=ofile_csv, append=False, nfloats=4 )
 
     # Make plots
     if args.plot == 1:

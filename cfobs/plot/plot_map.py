@@ -74,7 +74,6 @@ def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfil
          dat=df_agg,
          season_name=season_name,
          verbose=verbose,
-         modvar=modvar, 
          obscol=obscol, 
          statistic=statistic, 
          maplabel=parse_vars(maplabel,obstype,modvar),
@@ -92,7 +91,7 @@ def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfil
     return
 
 
-def _plot_map_and_statistics(fig,gs,idx,cf,modvar,dat,season_name=None,verbose=0,statistic='IOA',maxbias=50.0,maxstat=50.0,minval=0.0,maxval=80.0,dotedgecolor=None,dotsize=10,latcol='lat',loncol='lon',obscol='conc_obs',maplabel='None',colormap='rainbow'):
+def _plot_map_and_statistics(fig,gs,idx,cf,dat,season_name=None,verbose=0,statistic='IOA',maxbias=50.0,maxstat=50.0,minval=0.0,maxval=80.0,dotedgecolor=None,dotsize=10,latcol='lat',loncol='lon',obscol='conc_obs',maplabel='None',colormap='rainbow'):
     '''
     Plots a global map with the annual average model field and the observations overlaid to it.
     '''
@@ -105,7 +104,7 @@ def _plot_map_and_statistics(fig,gs,idx,cf,modvar,dat,season_name=None,verbose=0
     cf1 = ax.add_feature(cartopy.feature.BORDERS, edgecolor="grey")
     cf2 = ax.add_feature(cartopy.feature.COASTLINE, edgecolor="black")
     flev = np.linspace(minval,maxval,51)
-    cp = ax.contourf(cf.lon.values,cf.lat.values,cf[modvar].values,transform=proj,cmap=colormap,levels=flev,extend='max')
+    cp = ax.contourf(cf.lon.values,cf.lat.values,cf.values,transform=proj,cmap=colormap,levels=flev,extend='max')
     # Overlay obs 
     sc = _add_obs_to_map(ax,dat[loncol].values,dat[latcol].values,dat[obscol].values,dotsize,dotedgecolor,colormap,proj,minval,maxval)
     cbar = fig.colorbar(cp,ax=ax,shrink=1.0,extend='max',pad=0.02,ticks=np.linspace(minval,maxval,11))
