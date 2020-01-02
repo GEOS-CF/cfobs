@@ -33,15 +33,15 @@ regionsfile   = 'config/regions.yaml'
 def get_mapplotspecs(args):
     '''Specify map plot specifications for all species'''
     mapplotspecs = {}
-    mapplotspecs['o3'] = set_mapplotspecs('o3','o3',1.0e9,50.0,0.0,80.0,'Surface O$_{3}$ [ppbv]','IOA','Ozone (%Y-%m-%d)')
-    mapplotspecs['no2'] = set_mapplotspecs('no2','no2',1.0e9,25.0,0.0,75.0,'Surface NO$_{2}$ [ppbv]','IOA','Nitrogen dioxide (%Y-%m-%d)')
-    mapplotspecs['pm25_gcc'] = set_mapplotspecs('pm25','pm25_rh35_gcc',1.0,50.0,0.0,80.0,'Surface PM2.5 [$\mu$gm$^{-3}$]','IOA','PM2.5 from GEOS-Chem (%Y-%m-%d)')
-    mapplotspecs['pm25_gocart'] = set_mapplotspecs('pm25','pm25_rh35_gocar',1.0e9,50.0,0.0,80.0,'Surface PM2.5 [$\mu$gm$^{-3}$]','IOA','PM2.5 from GOCART (%Y-%m-%d)')
+    mapplotspecs['o3'] = set_mapplotspecs('o3','o3','o3',1.0e9,50.0,0.0,80.0,'Surface O$_{3}$ [ppbv]','IOA','Ozone (%Y-%m-%d)')
+    mapplotspecs['no2'] = set_mapplotspecs('no2','no2','no2',1.0e9,25.0,0.0,75.0,'Surface NO$_{2}$ [ppbv]','IOA','Nitrogen dioxide (%Y-%m-%d)')
+    mapplotspecs['pm25_gcc'] = set_mapplotspecs('pm25','pm25_gcc','pm25_rh35_gcc',1.0,50.0,0.0,80.0,'Surface PM2.5 [$\mu$gm$^{-3}$]','IOA','PM2.5 from GEOS-Chem (%Y-%m-%d)')
+    mapplotspecs['pm25_gocart'] = set_mapplotspecs('pm25','pm25_gocart','pm25_rh35_gocar',1.0e9,50.0,0.0,80.0,'Surface PM2.5 [$\mu$gm$^{-3}$]','IOA','PM2.5 from GOCART (%Y-%m-%d)')
     return mapplotspecs
 
-def set_mapplotspecs(obstype,modvar,modvarscal,maxbias,minval,maxval,maplabel,stat,title,modcol='conc_mod',ofile=ofile_png,mapfiles=mapfiles,dotedgecolor='grey',dotsize=10):
+def set_mapplotspecs(obstype,modvar,mapvar,mapvarscal,maxbias,minval,maxval,maplabel,stat,title,modcol='conc_mod',ofile=ofile_png,mapfiles=mapfiles,dotedgecolor='grey',dotsize=10):
     '''Define map plot settings for a species.'''
-    idict = {'obstype':obstype,'modvar':modvar,'modvarscal':modvarscal,'maxbias':maxbias,'minval':minval,'maxval':maxval,'maplabel':maplabel,'statistic':stat,'title':title,'modcol':modcol,'ofile':ofile,'mapfiles':mapfiles}
+    idict = {'obstype':obstype,'modvar':modvar,'mapvar':mapvar,'mapvarscal':modvarscal,'maxbias':maxbias,'minval':minval,'maxval':maxval,'maplabel':maplabel,'statistic':stat,'title':title,'modcol':modcol,'ofile':ofile,'mapfiles':mapfiles}
     return idict 
 
 def get_boxplotspecs(args):

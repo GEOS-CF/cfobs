@@ -29,7 +29,7 @@ from ..statistics import compute_metrics_by_location
 from ..read_cf import get_cf_map_taverage
 
 
-def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfiles='',modvar='O3',modvarscal=1.0,title='!v (%Y-%m-%d)',
+def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfiles='',modvar='O3',mapvar='O3',mapvarscal=1.0,title='!v (%Y-%m-%d)',
          modcol='conc_mod',obscol='conc_obs',loccol='location',minnobs=2,ofile='map_!v_%Y%m%d.png',statistic='IOA',maplabel='!v',**kwargs):
     '''
     Create a three-panel figure with global maps of (1) model values with observation data overlaid to it; (2) mean model-observation bias at each observation location; (3, optional) another statistical measure for model-observation fit at each location, as specified in the input arguments (default is to show Index of Agreement).
@@ -64,7 +64,7 @@ def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfil
                   minnobs=minnobs)
         # Read CF annual map
         season_name = seasons.get_season_name(iseason) if iseason>0 else None
-        cfmap = get_cf_map_taverage(mapfiles_parsed,iday,endday,verbose,modvar,modvarscal,season_name)
+        cfmap = get_cf_map_taverage(mapfiles_parsed,iday,endday,verbose,mapvar,mapvarscal,season_name)
         # Plot CF annual map, overlay with observation data
         _plot_map_and_statistics(
          fig=fig,

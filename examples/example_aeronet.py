@@ -28,7 +28,7 @@ configfile    = 'config/mapping_aeronet.yaml'
 regionsfile   = 'config/regions.yaml'
 
 # for map plot
-modvars = ['aod550_bc','aod550_oc','aod550_dust','aod550_sulfate','aod550_sala','aod550_salc']
+mapvars = ['aod550_bc','aod550_oc','aod550_dust','aod550_sulfate','aod550_sala','aod550_salc']
 mapfiles = 'https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/assim/xgc_tavg_1hr_g1440x721_x1'
 
 def main(args):
@@ -52,7 +52,7 @@ def main(args):
     #cfob.save( ofile=ofile_csv, append=0, nfloats=4 )
 
     # Plot
-    cfob.plot(plotkey='map',obstype='aod550',ofile=ofile_png,mapfiles=mapfiles,modvar=modvars,title='Aeronet vs. GEOS-CF (June 1-7, 2019)',maplabel='AOD 550nm [unitless]',maxval=1.0,maxbias=0.5)
+    cfob.plot(plotkey='map',obstype='aod550',modvar='aod550_gcc',ofile=ofile_png,mapfiles=mapfiles,mapvar=modvars,title='Aeronet vs. GEOS-CF (June 1-7, 2019)',maplabel='AOD 550nm [unitless]',maxval=1.0,maxbias=0.5)
     cfob.plot(plotkey='boxplot',obstype='aod550',ofile=ofile_png,regionsfile=regionsfile,title='GEOS-CF - Aeronet (June 1-7, 2019)',ylabel='AOD at 550nm, Model - Aeronet',minval=0.0,maxval=1.0)
 
     return
