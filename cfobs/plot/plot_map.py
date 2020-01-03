@@ -22,6 +22,7 @@ from matplotlib.cm import get_cmap
 import cartopy.crs as ccrs
 import cartopy.feature 
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+import logging
 
 from ..parse_string import parse_date
 from ..parse_string import parse_vars
@@ -29,16 +30,18 @@ from ..statistics import compute_metrics_by_location
 from ..read_cf import get_cf_map_taverage
 
 
-def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfiles='',modvar='O3',mapvar='O3',mapvarscal=1.0,title='!v (%Y-%m-%d)',
+def plot(orig_df,iday,endday=None,obstype='o3',plot_by_season=0,mapfiles='',modvar='O3',mapvar='O3',mapvarscal=1.0,title='!v (%Y-%m-%d)',
          modcol='conc_mod',obscol='conc_obs',loccol='location',minnobs=2,ofile='map_!v_%Y%m%d.png',statistic='IOA',maplabel='!v',**kwargs):
     '''
     Create a three-panel figure with global maps of (1) model values with observation data overlaid to it; (2) mean model-observation bias at each observation location; (3, optional) another statistical measure for model-observation fit at each location, as specified in the input arguments (default is to show Index of Agreement).
     '''
+
+    log = logging.getLogger(__name__)
     if endday is None:
         endday = iday + dt.timedelta(days=1)
     df = orig_df.loc[orig_df['obstype']==obstype].copy()
     if df.shape[0] == 0:
-        print('Warning: no data of obstype {} found!'.format(obstype))
+        log.warning('Warning: no data of obstype {} found!'.format(obstype))
         return
     if plot_by_season>0:
         ncol=4
@@ -57,14 +60,13 @@ def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfil
         df_agg = compute_metrics_by_location(
                   idat = df,
                   season_number=iseason,
-                  verbose=verbose,
                   modcol=modcol,
                   obscol=obscol,
                   loccol=loccol,
                   minnobs=minnobs)
         # Read CF annual map
         season_name = seasons.get_season_name(iseason) if iseason>0 else None
-        cfmap = get_cf_map_taverage(mapfiles_parsed,iday,endday,verbose,mapvar,mapvarscal,season_name)
+        cfmap = get_cf_map_taverage(mapfiles_parsed,iday,endday,mapvar,mapvarscal,season_name)
         # Plot CF annual map, overlay with observation data
         _plot_map_and_statistics(
          fig=fig,
@@ -73,7 +75,6 @@ def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfil
          cf=cfmap,
          dat=df_agg,
          season_name=season_name,
-         verbose=verbose,
          obscol=obscol, 
          statistic=statistic, 
          maplabel=parse_vars(maplabel,obstype,modvar),
@@ -87,16 +88,17 @@ def plot(orig_df,iday,endday=None,verbose=1,obstype='o3',plot_by_season=0,mapfil
     ofile = parse_date(ofile,iday)
     plt.savefig(ofile,bbox_inches='tight')
     plt.close()
-    print('Figure written to '+ofile)
+    log.info('Figure written to '+ofile)
     return
 
 
-def _plot_map_and_statistics(fig,gs,idx,cf,dat,season_name=None,verbose=0,statistic='IOA',maxbias=50.0,maxstat=50.0,minval=0.0,maxval=80.0,dotedgecolor=None,dotsize=10,latcol='lat',loncol='lon',obscol='conc_obs',maplabel='None',colormap='rainbow'):
+def _plot_map_and_statistics(fig,gs,idx,cf,dat,season_name=None,statistic='IOA',maxbias=50.0,maxstat=50.0,minval=0.0,maxval=80.0,dotedgecolor=None,dotsize=10,latcol='lat',loncol='lon',obscol='conc_obs',maplabel='None',colormap='rainbow'):
     '''
     Plots a global map with the annual average model field and the observations overlaid to it.
     '''
-    if verbose>0:
-        print('Plot map...')
+
+    log = logging.getLogger(__name__)
+    log.info('Plot map...')
     proj = ccrs.PlateCarree()
     # plot map, overlay observations 
     colormap = get_cmap(colormap)

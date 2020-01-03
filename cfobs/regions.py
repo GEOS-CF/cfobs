@@ -11,6 +11,7 @@
 import os
 import yaml
 import numpy as np
+import logging
 
 
 def define_regions(regionsfile):
@@ -18,8 +19,9 @@ def define_regions(regionsfile):
     Reads region information from a YAML file. This information
     is used to group the data into regional bins. 
     '''
+    log = logging.getLogger(__name__)
     if not os.path.isfile(regionsfile):
-        print('Region configuration file does not exist: {}'.format(regionsfile))
+        log.error('Region configuration file does not exist: {}'.format(regionsfile),exc_info=True)
         return None
     with open(regionsfile,'r') as f:
         regions = yaml.load(f, Loader=yaml.FullLoader)

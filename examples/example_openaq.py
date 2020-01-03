@@ -66,7 +66,7 @@ def main(args):
     model-observation comparisons.
     '''
     iday = dt.datetime(2019,12,1)
-    cfob = cfobs.CFObs( verbose=1 )
+    cfob = cfobs.CFObs()
     # Read OpenAQ data and get data frame 
     cfob.read_obs( obskey='openaq', startday=iday, json_tmpl=openaq_json )
 

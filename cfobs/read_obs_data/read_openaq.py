@@ -21,29 +21,31 @@ import numpy as np
 import datetime as dt
 import pandas as pd
 import json
+import logging
 
 from ..parse_string import parse_date 
 
 
-def read_openaq(iday,json_tmpl=None,csv_tmpl=None,verbose=0):
+def read_openaq(iday,json_tmpl=None,csv_tmpl=None):
     '''
     Reads the native OpenAQ data file for the given day and returns a cfobs-compatible data frame. 
     '''
+
+    log = logging.getLogger(__name__)
     # try to read json file first 
     df = None
     nlines = 0
     nerrs  = 0
     jsonfile = parse_date(json_tmpl,iday)
     if os.path.isfile(jsonfile): 
-        df,nlines,nerrs = read_openaq_ndjson(jsonfile,verbose)
+        df,nlines,nerrs = read_openaq_ndjson(jsonfile)
     # if not successful, try to read csv file instead 
     if nlines==0:
         assert(csv_tmpl is not None), 'Error: json file could not be read and csv template is not provided!'
         csvfile = parse_date(csv_tmpl,iday)
         if os.path.isfile(csvfile):
-            df,nlines,nerrs = read_openaq_csv(csvfile,verbose)
-    if verbose>0:
-        print('Read: {:,}, thereof tossed: {:,}'.format(nlines,nerrs))
+            df,nlines,nerrs = read_openaq_csv(csvfile)
+    log.info('Read: {:,}, thereof tossed: {:,}'.format(nlines,nerrs))
     return df
 
 
@@ -124,10 +126,12 @@ def read_json_line(line,dct):
     return dct,err
 
 
-def read_openaq_ndjson(ifile,verbose):
+def read_openaq_ndjson(ifile):
     '''
     Reads an OpenAQ ndjson file and writes its content to a data frame.
     '''
+
+    log = logging.getLogger(__name__)
     # read data into dictionary
     dct = dict({'ISO8601':[],
                 'localtime':[],
@@ -141,16 +145,13 @@ def read_openaq_ndjson(ifile,verbose):
                 })
     nline = 0
     nerr  = 0
-    if verbose>0:
-        print('reading '+ifile)
+    log.info('reading '+ifile)
     with open(ifile,"r") as f:
         for line in f:
             nline += 1
             dct,err = read_json_line(line,dct)
             nerr += err 
-            # verbose mode
-            if err > 0 and verbose > 1:
-                print('tossed: '+line)
+            log.debug('tossed: '+line)
     # pass to dataframe
     df = pd.DataFrame()
     if len(dct['ISO8601'])>0:
@@ -163,13 +164,13 @@ def read_openaq_ndjson(ifile,verbose):
     return df,nline,nerr
 
 
-def read_openaq_csv(ifile,verbose):
+def read_openaq_csv(ifile):
     '''
     Reads an OpenAQ csv file and writes its content to a data frame.
     '''
-    # read data
-    if verbose > 0:
-        print('reading '+ifile)
+
+    log = logging.getLogger(__name__)
+    log.info('reading {}'.format(ifile))
     ds = pd.read_csv(ifile,sep=",")
     # pass to dataframe
     df = pd.DataFrame()

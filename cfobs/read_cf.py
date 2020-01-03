@@ -15,6 +15,7 @@ import os
 import glob
 import xarray as xr
 import yaml
+import logging
 
 from .parse_string import parse_date 
 from .systools import load_config
@@ -24,7 +25,7 @@ AVG_LABEL_BEFORE = 'average_offset_before'
 AVG_LABEL_AFTER  = 'average_offset_after'
 HR_TO_NS = 60*60*10**9
 
-def read_cf_data_2d(idate,config=None,config_file=None,verbose=1):
+def read_cf_data_2d(idate,config=None,config_file=None,suppress_messages=False):
     '''
     Reads the CF output for the given datetime and returns all variables as specified
     in the configuration file.
@@ -78,6 +79,7 @@ def read_cf_data_2d(idate,config=None,config_file=None,verbose=1):
 
     This routine returns a dictionary with the 2d arrays of all variables.
     '''
+    log = logging.getLogger(__name__)
     # Configuration
     if config is None:
         config = load_config(config_file)
@@ -91,26 +93,26 @@ def read_cf_data_2d(idate,config=None,config_file=None,verbose=1):
     for collection in config:
         icol = config.get(collection)
         if 'template' not in icol:
-            print('Warning: `template` not defined for collection {} - will skip'.format(collection))
+            log.warning('`template` not defined for collection {} - will skip'.format(collection))
             continue
         if 'vars' not in icol:
-            print('Warning: no variable read from collection {} because `vars` key is missing'.format(collection))
+            log.warning('No variable read from collection {} because `vars` key is missing'.format(collection))
             continue
         # Open collection
         ifile = parse_date(icol.get('template'),tmpdate)
-        if verbose>0:
-            print('Reading {}'.format(ifile))
+        if not suppress_messages: 
+            log.info('Reading {}'.format(ifile))
         if '*' in ifile:
             try:
                 ds = xr.open_mfdataset(ifile)
             except:
-                print('Error reading {}.'.format(ifile))
+                log.error('Error reading {}.'.format(ifile), exc_info=True)
                 return -1, dat
         else:
             try:
                 ds = xr.open_dataset(ifile)
             except:
-                print('Error reading {}.'.format(ifile))
+                log.error('Error reading {}.'.format(ifile), exc_info=True)
                 return -1, dat
         # Reduce to 2D 
         if len(ds.time) > 1:
@@ -157,12 +159,12 @@ def _is_season(season,target):
     return (season==target)
 
 
-def get_cf_map_taverage(ifiles,startday,endday,verbose,varnames,scale_factor,season_name=None):
+def get_cf_map_taverage(ifiles,startday,endday,varnames,scale_factor,season_name=None):
     '''
     Return data array with temporally averaged values.
     '''
-    if verbose>0:
-        print('Compute time-averaged CF global map from {}'.format(ifiles))
+    log = logging.getLogger(__name__)
+    log.info('Compute time-averaged CF global map from {}'.format(ifiles))
     if len(glob.glob(ifiles))>1:
         ds = xr.open_mfdataset(ifiles)
     else:

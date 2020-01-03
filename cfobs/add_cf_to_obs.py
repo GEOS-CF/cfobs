@@ -50,6 +50,7 @@ import numpy as np
 import datetime as dt
 import pandas as pd
 import os
+import logging
 from tqdm import tqdm
 
 from .systools import load_config 
@@ -58,16 +59,17 @@ from .seasons import set_season
 from .units import get_conv_ugm3_to_ppbv
 from .units import to_ppbv 
 
-def add_cf(df_in,configfile=None,verbose=1,modcol='conc_mod',obscol='conc_obs',unitcol='conc_unit',show_progress=True):
+
+def add_cf(df_in,configfile=None,modcol='conc_mod',obscol='conc_obs',unitcol='conc_unit',show_progress=True):
     '''
     Adds CF output to an (observations) data frame by sampling the data frame by datetime, longitude and latitude and
     read the corresponding CF value. This function currently only aggregates by hours, i.e. all minute information 
     is omitted. 
     '''
     rc = 0
-    if verbose > 0:
-        print('Matching CF output to observations...')
-    cf_config,map_config = _read_config(verbose,configfile) 
+    log = logging.getLogger(__name__)
+    log.info('Matching CF output to observations...')
+    cf_config,map_config = _read_config(configfile) 
     # 'Round' all time stamps to hours. Will only aggregate by hourly values
     df_in['ISO8601'] = [dt.datetime(i.year,i.month,i.day,i.hour,0,0) for i in df_in['ISO8601']]
     # Check for local time. If it exists, convert to seconds since lowest datetime to ensure proper
@@ -83,8 +85,9 @@ def add_cf(df_in,configfile=None,verbose=1,modcol='conc_mod',obscol='conc_obs',u
     df[obscol]           = np.zeros((ncol,))*np.nan
     df[unitcol]          = ['unknown' for i in range(ncol)]
     # Loop over all time stamps and add CF data
-    for idate in tqdm(list(df['ISO8601'].unique()),disable=not show_progress):
-        rc, df = _add_cf_data_to_df(df,idate,cf_config,map_config,verbose,obscol,modcol,unitcol)
+    
+    for idate in tqdm(list(df['ISO8601'].unique()),disable=(not show_progress)):
+        rc, df = _add_cf_data_to_df(df,idate,cf_config,map_config,obscol,modcol,unitcol)
         # error check
         if rc != 0:
             break
@@ -97,8 +100,6 @@ def add_cf(df_in,configfile=None,verbose=1,modcol='conc_mod',obscol='conc_obs',u
             c2fill.append(c)
     # Re-add removed column data
     if len(c2fill)>0:
-        if verbose>2:
-            print('Re-add removed columns...')
         # group original data by location and all columns of interest. 
         # This is expected to return only one entry per location but sometimes the same station can have different character meta-data. In that case we will pick the one that occurs most often.
         grouped_by_station = df_in.groupby(['location']+c2fill).count().reset_index()
@@ -112,15 +113,16 @@ def add_cf(df_in,configfile=None,verbose=1,modcol='conc_mod',obscol='conc_obs',u
     return df
 
 
-def _add_cf_data_to_df(df,idate,cf_config,map_config,verbose,obscol,modcol,unitcol):
+def _add_cf_data_to_df(df,idate,cf_config,map_config,obscol,modcol,unitcol):
     '''
     Updates the observation data frame for a given datetime by reading CF data and
     adding the proper CF value to each observation. Also assigns a 'observation value'
     to each observation that has the same unit as the model value. The model value
     is labelled 'conc_mod', and the observation value is labelled 'conc_obs'. 
     '''
-    # Read CF data, decrease verbose level to avoid excessive statements
-    rc, dat = read_cf_data_2d(idate=idate,config=cf_config,verbose=verbose-1)
+    # Read CF data, set verbose level to 0 to avoid excessive statements
+    log = logging.getLogger(__name__)
+    rc, dat = read_cf_data_2d(idate=idate,config=cf_config,suppress_messages=True)
     if rc != 0:
         return rc, None
     # Get coordinate values 
@@ -151,8 +153,7 @@ def _add_cf_data_to_df(df,idate,cf_config,map_config,verbose,obscol,modcol,unitc
             df[imodcol] = np.zeros((df.shape[0],))*np.nan
         # Add CF variables, ignore NaN's 
         if 'cfvars' not in var_config:
-            if verbose > 0:
-                print('Warning: no CF variables defined for {} - no CF data will be matched to observations'.format(ivar))
+            log.warning('No CF variables defined for {} - no CF data will be matched to observations'.format(ivar))
             continue
         cfvars = var_config.get('cfvars')
         if type(cfvars) == type(''):
@@ -174,7 +175,7 @@ def _add_cf_data_to_df(df,idate,cf_config,map_config,verbose,obscol,modcol,unitc
     return rc, df
 
 
-def _read_config(verbose,configfile):
+def _read_config(configfile):
     '''
     Read the configuration file that define the CF variables to be read as well as the mapping between observations and model variables..
     '''

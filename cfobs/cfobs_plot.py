@@ -25,7 +25,7 @@ plot_functions = {
         }
 
 
-def plot(df,plotkey,iday,verbose=0,ofile='figures/figure_!k_%Y%m%d.csv',**kwargs):
+def plot(df,plotkey,iday,ofile='figures/figure_!k_%Y%m%d.csv',**kwargs):
     '''
     Plot handler. This is a wrapper that calls down to the individual plot functions 
     '''
@@ -33,5 +33,5 @@ def plot(df,plotkey,iday,verbose=0,ofile='figures/figure_!k_%Y%m%d.csv',**kwargs
     assert(plotkey in plot_functions), 'Invalid plottype key: {}'.format(plotkey)
     plotfunc = plot_functions.get(plotkey)
     if df is not None:
-        _ = plotfunc(df,iday,ofile=parse_key(ofile,plotkey),verbose=verbose,**kwargs)
+        _ = plotfunc(df,iday,ofile=parse_key(ofile,plotkey),**kwargs)
     return 

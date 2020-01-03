@@ -11,6 +11,7 @@
 import numpy as np
 import datetime as dt
 import pandas as pd
+import logging
 
 from .seasons import reduce_data_to_season
 
@@ -24,14 +25,15 @@ def compute_unaggregated_metrics(dat,modcol='conc_mod',obscol='conc_obs'):
     return dat
 
 
-def compute_metrics_by_location(idat,season_number=-1,verbose=0,modcol='conc_mod',
+def compute_metrics_by_location(idat,season_number=-1,modcol='conc_mod',
                                 obscol='conc_obs',loccol='location',minnobs=2):
     '''
     Compute location-aggregated metrics (bias, rmse, r2, etc.) and returns
     a data frame with these metrics grouped by location. 
     '''
-    if verbose>0:
-        print('Compute metrics...')
+
+    log = logging.getLogger(__name__)
+    log.info('Compute metrics...')
     # Make local copy of input array, since we will be messing around with it.
     # Subsamble to data for selected season if applicable. 
     if season_number <= 0:

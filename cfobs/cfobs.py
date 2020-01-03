@@ -28,8 +28,7 @@ class CFObs(object):
     :param ifile: str, file name to read from
     :param verbose: int, verbose mode
     '''
-    def __init__(self, ifile=None, verbose=0, **kwargs):
-        self._verbose  = verbose
+    def __init__(self, ifile=None, **kwargs):
         self._startday = None 
         self._endday   = None 
         self._data     = pd.DataFrame()
@@ -45,7 +44,7 @@ class CFObs(object):
 
     def add(self, **kwargs):
         '''Add previously saved data from a csv file to existing data.'''
-        data, startday, endday = cfobs_load(verbose=self._verbose,**kwargs)
+        data, startday, endday = cfobs_load(**kwargs)
         self._data = self._data.append(data)
         self._startday = startday if self._startday is None else min(startday,self._startday)
         self._endday   = endday if self._endday is None else max(endday,self._endday)
@@ -60,19 +59,19 @@ class CFObs(object):
 
     def save(self, ofile, **kwargs):
         '''Save data to a csv file.'''
-        _ = cfobs_save(self._data, ofile, self._endday, verbose=self._verbose, **kwargs)
+        _ = cfobs_save(self._data, ofile, self._endday, **kwargs)
 
 
     def read_obs(self, obskey, startday, endday=None, **kwargs):
         '''Read observation data from original data source.''' 
-        self._data = read_obs(obskey, startday, endday, verbose=self._verbose, **kwargs)
+        self._data = read_obs(obskey, startday, endday, **kwargs)
         self._startday = startday
         self._endday = endday if endday is not None else startday 
 
 
     def add_cf(self, **kwargs):
         '''Add CF information to the data frame.'''
-        self._data = addcf(self._data, verbose=self._verbose, **kwargs)
+        self._data = addcf(self._data, **kwargs)
 
 
     def update_regions(self, regionsfile):
@@ -82,5 +81,5 @@ class CFObs(object):
 
     def plot(self, plotkey, **kwargs):
         '''Make a plot of the data.'''
-        cfobs_plot(self._data, plotkey, self._endday, verbose=self._verbose, **kwargs)
+        cfobs_plot(self._data, plotkey, self._endday, **kwargs)
 

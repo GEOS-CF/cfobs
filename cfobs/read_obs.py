@@ -13,6 +13,7 @@ import sys
 import numpy as np
 import datetime as dt
 import pandas as pd
+import logging
 
 import cfobs.read_obs_data.read_openaq as openaq
 import cfobs.read_obs_data.read_aeronet as aeronet
@@ -33,7 +34,7 @@ read_functions = {
         }
 
 
-def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,verbose=0,save=False,ofile='output_!k_%Y_%m_%d.csv',append_to_ofile=False,nfloats=-1,return_data=True,track_list_of_stations=False,stationsfile=None,gridres=1.0,**kwargs):
+def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,save=False,ofile='output_!k_%Y_%m_%d.csv',append_to_ofile=False,nfloats=-1,return_data=True,track_list_of_stations=False,stationsfile=None,gridres=1.0,**kwargs):
     '''
     Read native observation data and returns a cfobs-compatible data frame. 
     Also save the data to a csv file if specified so.
@@ -49,7 +50,7 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,verbose=0,save=
     All read functions read the observation-type specific data sets and 
     'translate' them into a Pandas data frame compatible with this module. 
     The read functions all have the following form:
-       df = function(date=type(dt.datetime),verbose=type(int),**kwargs).
+       df = function(date=type(dt.datetime),**kwargs).
     The returned Pandas data frame must contain all observations in separate
     lines, and have at least the following columns:
     'ISO8601': date and time stamp of the observation in UTC (type dt.datetime)
@@ -73,8 +74,6 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,verbose=0,save=
     time_delta : int
         Toss all observations outside the specified time range +/- time_delta.
         In hours. Only used if >=0.
-    verbose : int
-        verbose mode.
     save : bool
         If true, saves the data frame to a csv file.
     ofile : str
@@ -98,6 +97,7 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,verbose=0,save=
         Additional arguments passed to the reading function.
     '''
 
+    log = logging.getLogger(__name__)
     # check if requested observation key exists in funcs and get function for it
     assert(obskey in read_functions.keys()), 'Invalid observation key: {}'.format(obskey)
     readfunc = read_functions.get(obskey)
@@ -121,11 +121,10 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,verbose=0,save=
     fulldf = pd.DataFrame() if return_data else None
 #---read data day by day
     for idate in datelist:
-        if verbose>0:
-            print('working on '+idate.strftime('%Y-%m-%d'))
+        log.info('working on '+idate.strftime('%Y-%m-%d'))
         sys.stdout.flush()
         # read data based on obs-specific function, as set at the beginning
-        df = readfunc(idate,verbose=verbose,**kwargs)
+        df = readfunc(idate,**kwargs)
         if df is None:
             df = pd.DataFrame()
         # remove all invalid entries before writing out
@@ -136,12 +135,12 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,verbose=0,save=
             # update location information
             df, stationstable = update_stations_info(df,stationstable,lats,lons)
             # remove all data outside the provide date range.
-            df = _check_dates(df,idate,verbose,time_delta)
+            df = _check_dates(df,idate,time_delta)
         else:
-            print('Warning: no data found for '+idate.strftime('%Y-%m-%d'))
+            log.warning('No data found for '+idate.strftime('%Y-%m-%d'))
         # save to csv file
         if df.shape[0]>0 and save:
-            opened_files = cfobs_save(df=df,file=parse_key(ofile,obskey),iday=idate,opened_files=opened_files,verbose=verbose,append=append_to_ofile,nfloats=nfloats)
+            opened_files = cfobs_save(df=df,file=parse_key(ofile,obskey),iday=idate,opened_files=opened_files,append=append_to_ofile,nfloats=nfloats)
         # add to return frame
         if return_data and df.shape[0]>0:
             fulldf = fulldf.append(df)
@@ -151,13 +150,14 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,verbose=0,save=
     return fulldf
 
 
-def _check_dates(df,idate,verbose,time_delta=-1):
+def _check_dates(df,idate,time_delta=-1):
     '''
     Tosses all observations that are outside the day +- time-delta.
     '''
-    # nothing to do if not defined
+
     if time_delta<0:
         return df
+    log = logging.getLogger(__name__)
     # time delta
     delta = dt.timedelta(hours=time_delta)
     mindate = idate - delta 
@@ -165,6 +165,5 @@ def _check_dates(df,idate,verbose,time_delta=-1):
     ncols1 = df.shape[0]
     df = df.loc[(df['ISO8601']>=mindate) & (df['ISO8601']<maxdate)].copy()
     ncols2 = df.shape[0]
-    if verbose>1 or (verbose>0 and (ncols2<ncols1)):
-        print('{:,} of {:,} observations removed because they are outside the specified time range!'.format(ncols1-ncols2,ncols1))
+    log.info('{:,} of {:,} observations removed because they are outside the specified time range!'.format(ncols1-ncols2,ncols1))
     return df

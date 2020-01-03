@@ -12,15 +12,17 @@ import os
 import numpy as np
 import datetime as dt
 import pandas as pd
+import logging
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 
 from .parse_string import parse_date 
 
 
-def load(file_template,startday,endday=None,read_freq='1D',verbose=1,file_not_found_ok=False,**kwargs):
+def load(file_template,startday,endday=None,read_freq='1D',file_not_found_ok=False,**kwargs):
     '''
     Load data from file for the time period from startday to endday.
     '''
+    log = logging.getLogger(__name__)
     if endday is None:
         endday = startday
     timesteps = pd.date_range(start=startday,end=endday,freq=read_freq).tolist()
@@ -29,23 +31,22 @@ def load(file_template,startday,endday=None,read_freq='1D',verbose=1,file_not_fo
         ifile = parse_date(file_template,idatetime)
         if not os.path.isfile(ifile):
             if file_not_found_ok:
-                if verbose>0:
-                    print("Warning: file not found: {}".format(ifile))
+                log.warning("Warning: file not found: {}".format(ifile))
                 continue
             else:
-                print("Error: file not found: {}".format(ifile))
+                log.error("Error: file not found: {}".format(ifile),exc_info=True)
                 raise
-        idat = _load_single_file(ifile,verbose=verbose,**kwargs)
+        idat = _load_single_file(ifile,**kwargs)
         dat  = dat.append(idat)
     return dat
 
 
-def _load_single_file(ifile,verbose=1,to_float=False,round_minutes=False):
+def _load_single_file(ifile,to_float=False,round_minutes=False):
     '''
     Load data from single file. 
     '''
-    if verbose>0:
-        print('Loading {}'.format(ifile)) 
+    log = logging.getLogger(__name__)
+    log.info('Loading {}'.format(ifile)) 
     # determine date columns
     datecols = ['ISO8601']
     file_hdr = pd.read_csv(ifile,nrows=1)
@@ -71,7 +72,6 @@ def _load_single_file(ifile,verbose=1,to_float=False,round_minutes=False):
             if k in ['ISO8601','unit','obstype','location']:
                 continue 
             if not is_numeric_dtype(dat[k]):
-                if verbose > 1:
-                    print("Converting to float: "+k)
+                log.debug("Converting to float: "+k)
                 dat[k] = dat[k].astype(float)
     return dat

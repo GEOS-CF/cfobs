@@ -16,6 +16,7 @@ import pandas as pd
 from dateutil import relativedelta
 import requests
 from tqdm import tqdm
+import logging
 
 from ..parse_string import parse_date 
 
@@ -26,7 +27,7 @@ AERONET_WEBSERVICE = 'https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3'
 NON_FLOAT_COLUMNS  = ['AERONET_Site','Date(dd:mm:yyyy)','Time(hh:mm:ss)','AERONET_Site_Name','Data_Quality_Level']
 
 
-def read_aeronet(start,end=None,verbose=1,localfiles=None,**kwargs):
+def read_aeronet(start,end=None,localfiles=None,**kwargs):
     '''
     Read AERONET data and calculate the AOD value at a given wavelength at each 
     station based on the available values. Simple interpolation is performed 
@@ -40,49 +41,54 @@ def read_aeronet(start,end=None,verbose=1,localfiles=None,**kwargs):
     The obstype of the returned data frame is 'aod'<wl>, where wl is the AOD 
     wavelength in nm.
     '''
+
+    log = logging.getLogger(__name__)
     if localfiles is not None:
-        df = read_aeronet_locally(verbose,localfiles,start,end,**kwargs)
+        df = read_aeronet_locally(localfiles,start,end,**kwargs)
     else:
         end = end if end is not None else start + relativedelta.relativedelta(months=1)
-        df = read_aeronet_remote(verbose,start,end,**kwargs)
+        df = read_aeronet_remote(start,end,**kwargs)
     # sort data and strip empty spaces
     df = df.sort_values(by="ISO8601")
     df['original_station_name'] = [i.replace(" ","") for i in df['original_station_name']]
-    if verbose>0:
-        print('Read {:,} Aeronet observations'.format(df.shape[0]))
+    log.info('Read {:,} Aeronet observations'.format(df.shape[0]))
     return df
 
 
-def read_aeronet_locally(verbose,localfiles,start,end,show_progress=True,**kwargs):
+def read_aeronet_locally(localfiles,start,end,show_progress=True,**kwargs):
+    '''Read Aeronet data from local files'''
+
+    log = logging.getLogger(__name__)
     files = glob.glob(parse_date(localfiles,start))
     if len(files)==0:
-        print('No files found in '+args.idir)
+        log.warning('No files found in '+args.idir)
         return
     # output dataframe
     df = pd.DataFrame()
     # read data station by station, merge into main dataframe
-    for ifile in tqdm(files,disable=not show_progress):
-        if verbose>0:
-            print('reading {}'.format(file))
+    for ifile in tqdm(files,disable=(not show_progress)):
+        log.info('reading {}'.format(file))
         tb = pd.read_csv(file,sep=",",skiprows=LOCALFILE_SKIPROWS)
-        idf = read_aeronet_table(tb,start,end,verbose,**kwargs)
+        idf = read_aeronet_table(tb,start,end,**kwargs)
         if idf.shape[0] > 0:
             df = df.append(idf)
     return df
 
 
-def read_aeronet_remote(verbose,start,end,show_progress=True,data_type='AOD20',AVG=20,**kwargs):
+def read_aeronet_remote(start,end,show_progress=True,data_type='AOD20',AVG=20,**kwargs):
     '''Read aeronet data remotely using the web data download tool'''
+
+    
+    log = logging.getLogger(__name__)
     url = AERONET_WEBSERVICE+start.strftime('?year=%Y&month=%-m&day=%-d')+end.strftime('&year2=%Y&month2=%-m&day2=%-d')+'&'+data_type+'=1&AVG='+str(AVG)
     # wget --no-check-certificate -q -O tmp.csv <url>
-    if verbose>0:
-        print('Reading AERONET data remotely from {}'.format(url))
+    log.info('Reading AERONET data remotely from {}'.format(url))
     r = requests.get(url)
     assert(r.status_code == requests.codes.ok), 'Error reading AERONET data from {}'.format(url)
     lines = r.content.decode("utf8").split('\n')
     tb = pd.DataFrame()
     header = lines[7].replace('<br>','').split(',')
-    for l in tqdm(lines[8:],disable=not show_progress):
+    for l in tqdm(lines[8:],disable=(not show_progress)):
         if '</body></html>' in l:
             break
         tb = tb.append(pd.DataFrame([l.replace('<br>','').split(',')],columns=header))
@@ -90,12 +96,13 @@ def read_aeronet_remote(verbose,start,end,show_progress=True,data_type='AOD20',A
         if k in NON_FLOAT_COLUMNS:
             continue 
         tb[k] = tb[k].astype(float)
-    df = read_aeronet_table(tb,start,end,verbose,**kwargs)
+    df = read_aeronet_table(tb,start,end,**kwargs)
     return df
 
 
-def read_aeronet_table(tb,start,end,verbose,wavelength=550,remove_nan=1,approximate_wavelength=1,wl_interpolation_method=2):
+def read_aeronet_table(tb,start,end,wavelength=550,remove_nan=1,approximate_wavelength=1,wl_interpolation_method=2):
     '''Read an aeronet file and creates a Pandas dataframe containing it's values'''
+
     df = pd.DataFrame()
     # get dates & times (UTC)
     df['ISO8601'] = [dt.datetime.strptime(' '.join([i,j]),"%d:%m:%Y %H:%M:%S") for i,j in zip(tb['Date(dd:mm:yyyy)'],tb['Time(hh:mm:ss)'])]

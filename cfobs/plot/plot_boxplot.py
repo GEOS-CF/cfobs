@@ -17,6 +17,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import matplotlib.dates as mdates
+import logging
 
 from ..parse_string import parse_date 
 from ..parse_string import parse_vars
@@ -25,14 +26,16 @@ from ..statistics import compute_metrics_by_location
 from ..statistics import compute_unaggregated_metrics
 
 
-def plot(orig_df,iday,verbose,obstype='o3',modvar=None,plot_by_season=0,plot_by_region=1,regionsfile=None,title='!t (%Y-%m-%d)',modcol='conc_mod',obscol='conc_obs',loccol='location',ofile='boxplot_!t_%Y%m%d.png',statistic='bias',aggregate_by_location=0,minnobs=2,ylabel='!t',**kwargs):
+def plot(orig_df,iday,obstype='o3',modvar=None,plot_by_season=0,plot_by_region=1,regionsfile=None,title='!t (%Y-%m-%d)',modcol='conc_mod',obscol='conc_obs',loccol='location',ofile='boxplot_!t_%Y%m%d.png',statistic='bias',aggregate_by_location=0,minnobs=2,ylabel='!t',**kwargs):
     '''
     Make boxplot of CF vs observation. 
     '''
+
+    log = logging.getLogger(__name__)
     modvar = modvar if modvar is not None else obstype
     df = orig_df.loc[orig_df['obstype']==obstype].copy()
     if df.shape[0] == 0:
-        print('Warning: no data of obstype {} found!'.format(obstype))
+        log.warning('No data of obstype {} found!'.format(obstype))
         return
     nrow = 1
     if plot_by_season>0:
@@ -52,7 +55,6 @@ def plot(orig_df,iday,verbose,obstype='o3',modvar=None,plot_by_season=0,plot_by_
             df_stats = compute_metrics_by_location(
                        idat = idf,
                        season_number=-1,
-                       verbose=verbose,
                        modcol=modcol,
                        obscol=obscol,
                        loccol=loccol,
@@ -70,12 +72,13 @@ def plot(orig_df,iday,verbose,obstype='o3',modvar=None,plot_by_season=0,plot_by_
     ofile = parse_date(parse_vars(ofile,obstype,modvar),iday)
     plt.savefig(ofile,bbox_inches='tight')
     plt.close()
-    print('Figure written to '+ofile)
+    log.info('Figure written to '+ofile)
     return
 
 
 def make_boxplot(ax,df_stats,statistic,plot_by_region,season_number,ylabel,minval=None,maxval=None):
     '''Make the boxplot at the given axis.'''
+
     #groupby = 'regionShortName' if plot_by_region else None 
     groupby = 'region' if plot_by_region else None 
     df_stats.boxplot(column=statistic,by=groupby,ax=ax,rot=90)

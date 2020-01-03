@@ -41,7 +41,7 @@ def main(args):
     # Read AERONET data 
     startday = dt.datetime(2019,6,1)
     endday = dt.datetime(2019,6,7)
-    cfob = cfobs.CFObs( verbose=1 )
+    cfob = cfobs.CFObs()
     cfob.read_obs( obskey='aeronet', startday=startday, read_freq=None, end=endday )
 
     # Merge with CF data and add region information
