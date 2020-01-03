@@ -53,7 +53,7 @@ def read_aeronet(start,end=None,verbose=1,localfiles=None,**kwargs):
     return df
 
 
-def read_aeronet_locally(verbose,localfiles,start,end,**kwargs):
+def read_aeronet_locally(verbose,localfiles,start,end,show_progress=True,**kwargs):
     files = glob.glob(parse_date(localfiles,start))
     if len(files)==0:
         print('No files found in '+args.idir)
@@ -61,7 +61,7 @@ def read_aeronet_locally(verbose,localfiles,start,end,**kwargs):
     # output dataframe
     df = pd.DataFrame()
     # read data station by station, merge into main dataframe
-    for ifile in tqdm(files):
+    for ifile in tqdm(files,disable=not show_progress):
         if verbose>0:
             print('reading {}'.format(file))
         tb = pd.read_csv(file,sep=",",skiprows=LOCALFILE_SKIPROWS)
@@ -71,7 +71,7 @@ def read_aeronet_locally(verbose,localfiles,start,end,**kwargs):
     return df
 
 
-def read_aeronet_remote(verbose,start,end,data_type='AOD20',AVG=20,**kwargs):
+def read_aeronet_remote(verbose,start,end,show_progress=True,data_type='AOD20',AVG=20,**kwargs):
     '''Read aeronet data remotely using the web data download tool'''
     url = AERONET_WEBSERVICE+start.strftime('?year=%Y&month=%-m&day=%-d')+end.strftime('&year2=%Y&month2=%-m&day2=%-d')+'&'+data_type+'=1&AVG='+str(AVG)
     # wget --no-check-certificate -q -O tmp.csv <url>
@@ -82,7 +82,7 @@ def read_aeronet_remote(verbose,start,end,data_type='AOD20',AVG=20,**kwargs):
     lines = r.content.decode("utf8").split('\n')
     tb = pd.DataFrame()
     header = lines[7].replace('<br>','').split(',')
-    for l in tqdm(lines[8:]):
+    for l in tqdm(lines[8:],disable=not show_progress):
         if '</body></html>' in l:
             break
         tb = tb.append(pd.DataFrame([l.replace('<br>','').split(',')],columns=header))

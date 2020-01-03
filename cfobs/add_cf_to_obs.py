@@ -58,7 +58,7 @@ from .seasons import set_season
 from .units import get_conv_ugm3_to_ppbv
 from .units import to_ppbv 
 
-def add_cf(df_in,configfile=None,verbose=1,modcol='conc_mod',obscol='conc_obs',unitcol='conc_unit'):
+def add_cf(df_in,configfile=None,verbose=1,modcol='conc_mod',obscol='conc_obs',unitcol='conc_unit',show_progress=True):
     '''
     Adds CF output to an (observations) data frame by sampling the data frame by datetime, longitude and latitude and
     read the corresponding CF value. This function currently only aggregates by hours, i.e. all minute information 
@@ -82,8 +82,8 @@ def add_cf(df_in,configfile=None,verbose=1,modcol='conc_mod',obscol='conc_obs',u
     df[modcol]           = np.zeros((ncol,))*np.nan
     df[obscol]           = np.zeros((ncol,))*np.nan
     df[unitcol]          = ['unknown' for i in range(ncol)]
-    # Loop over all time stamps and add CF data 
-    for idate in tqdm(list(df['ISO8601'].unique())):
+    # Loop over all time stamps and add CF data
+    for idate in tqdm(list(df['ISO8601'].unique()),disable=not show_progress):
         rc, df = _add_cf_data_to_df(df,idate,cf_config,map_config,verbose,obscol,modcol,unitcol)
         # error check
         if rc != 0:
