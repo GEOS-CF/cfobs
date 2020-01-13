@@ -85,7 +85,6 @@ def add_cf(df_in,configfile=None,modcol='conc_mod',obscol='conc_obs',unitcol='co
     df[obscol]           = np.zeros((ncol,))*np.nan
     df[unitcol]          = ['unknown' for i in range(ncol)]
     # Loop over all time stamps and add CF data
-    
     for idate in tqdm(list(df['ISO8601'].unique()),disable=(not show_progress)):
         rc, df = _add_cf_data_to_df(df,idate,cf_config,map_config,obscol,modcol,unitcol)
         # error check
