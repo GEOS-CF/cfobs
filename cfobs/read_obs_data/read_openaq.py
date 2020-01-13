@@ -104,6 +104,14 @@ def read_json_line(line,dct):
         if rc==0:
             lat,rc = getv(cor,"latitude",rc,None)
             lon,rc = getv(cor,"longitude",rc,None)
+        lerr = 0
+        attr, lerr = getv(j,"attribution",lerr)
+        if lerr==0:
+            attr = attr[0] if type(attr)==type([]) else attr
+            src,lerr = getv(attr,'name',lerr,type(u""))
+        if lerr != 0:
+            src = 'unknown'
+        src = ': '.join(['OpenAQ ndjson',src])
     if rc>0:
         err = 1
     # don't allow negative values:
@@ -120,6 +128,7 @@ def read_json_line(line,dct):
         dct['obstype'].append(par)
         dct['unit'].append(get_unit(unt))
         dct['value'].append(val)
+        dct['source'].append(src)
     else:
         df = None
     # All done
@@ -141,12 +150,13 @@ def read_openaq_ndjson(ifile):
                 'lon':[],
                 'obstype':[],
                 'unit':[],
-                'value':[] 
+                'value':[], 
+                'source':[], 
                 })
     nline = 0
     nerr  = 0
     log.info('reading '+ifile)
-    with open(ifile,"r") as f:
+    with open(ifile,"r",encoding="ISO-8859-1") as f:
         for line in f:
             nline += 1
             dct,err = read_json_line(line,dct)
@@ -183,6 +193,7 @@ def read_openaq_csv(ifile):
     df['obstype']   = ds['parameter']
     df['unit']      = [get_unit(i) for i in ds['unit']]
     df['value']     = [np.float(i) for i in ds['value']]
+    df['source']    = ['OpenAQ csv: '+i.split('name:')[1].split(',')[0] for i in ds['attribution']]
     # cleanup
     nline = df.shape[0]
     nerr  = 0

@@ -51,6 +51,7 @@ def read_aeronet(start,end=None,localfiles=None,**kwargs):
     # sort data and strip empty spaces
     df = df.sort_values(by="ISO8601")
     df['original_station_name'] = [i.replace(" ","") for i in df['original_station_name']]
+    df['source'] = ['Aeronet' for i in df.shape[0]]
     log.info('Read {:,} Aeronet observations'.format(df.shape[0]))
     return df
 
