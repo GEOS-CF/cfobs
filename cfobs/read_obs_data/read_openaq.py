@@ -53,7 +53,7 @@ def getv(j,name,rc,inst=None):
     """
     Wrapper for reading json variable.
     """
-    val = j.get(name)
+    val = j.get(name,None)
     if inst is not None:
         if not isinstance(val,inst):
             val = None
@@ -94,24 +94,25 @@ def read_json_line(line,dct):
         ctr,rc = getv(j,"country",rc,type(u""))
         par,rc = getv(j,"parameter",rc,type(u""))
         unt,rc = getv(j,"unit",rc,type(u""))
-        val,rc = getv(j,"value",rc,None)
-        val    = np.float(val)
-        dat,rc = getv(j,"date",rc,None)
+        val,rc = getv(j,"value",rc)
+        val    = np.float(val) if val is not None else None
+        dat,rc = getv(j,"date",rc)
         if rc==0:
-            utc,rc = getv(dat,"utc",rc,None)
-            lcl,rc = getv(dat,"local",rc,None)
+            utc,rc = getv(dat,"utc",rc)
+            lcl,rc = getv(dat,"local",rc)
         cor,rc = getv(j,"coordinates",rc)
         if rc==0:
-            lat,rc = getv(cor,"latitude",rc,None)
-            lon,rc = getv(cor,"longitude",rc,None)
-        lerr = 0
-        attr, lerr = getv(j,"attribution",lerr)
-        if lerr==0:
-            attr = attr[0] if type(attr)==type([]) else attr
-            src,lerr = getv(attr,'name',lerr,type(u""))
-        if lerr != 0:
-            src = 'unknown'
-        src = ': '.join(['OpenAQ ndjson',src])
+            lat,rc = getv(cor,"latitude",rc)
+            lon,rc = getv(cor,"longitude",rc)
+        if rc==0:
+            lerr = 0
+            attr, lerr = getv(j,"attribution",lerr)
+            if lerr==0:
+                attr = attr[0] if type(attr)==type([]) else attr
+                src,lerr = getv(attr,'name',lerr,type(u""))
+            if lerr != 0:
+                src = 'unknown'
+            src = ': '.join(['OpenAQ ndjson',src])
     if rc>0:
         err = 1
     # don't allow negative values:
