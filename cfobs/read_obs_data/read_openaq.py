@@ -99,7 +99,19 @@ def read_json_line(line,dct):
         dat,rc = getv(j,"date",rc)
         if rc==0:
             utc,rc = getv(dat,"utc",rc)
+            if rc==0:
+                try:
+                    utc_date = dt.datetime.strptime(utc,'%Y-%m-%dT%H:%M:%S.000Z')
+                except:
+                    utc_date = None
+                    rc += 1
             lcl,rc = getv(dat,"local",rc)
+            if rc==0:
+                try:
+                    lcl_date = dt.datetime.strptime(lcl[0:19],'%Y-%m-%dT%H:%M:%S')
+                except:
+                    lcl_date = None
+                    rc += 1
         cor,rc = getv(j,"coordinates",rc)
         if rc==0:
             lat,rc = getv(cor,"latitude",rc)
@@ -120,8 +132,8 @@ def read_json_line(line,dct):
         err = 1
     # Populate dataframe 
     if err==0:
-        dct['ISO8601'].append(dt.datetime.strptime(utc,'%Y-%m-%dT%H:%M:%S.000Z'))
-        dct['localtime'].append(dt.datetime.strptime(lcl[0:19],'%Y-%m-%dT%H:%M:%S'))
+        dct['ISO8601'].append(utc_date)
+        dct['localtime'].append(lcl_date)
         dct['original_station_name'].append(loc)
         dct['country'].append(ctr)
         dct['lat'].append(np.float(lat))
@@ -194,7 +206,7 @@ def read_openaq_csv(ifile):
     df['obstype']   = ds['parameter']
     df['unit']      = [get_unit(i) for i in ds['unit']]
     df['value']     = [np.float(i) for i in ds['value']]
-    df['source']    = ['OpenAQ csv: '+i.split('name:')[1].split(',')[0] for i in ds['attribution']]
+    df['source']    = ['OpenAQ csv: '+i.split('"name":')[1].split(',')[0] for i in ds['attribution']]
     # cleanup
     nline = df.shape[0]
     nerr  = 0
