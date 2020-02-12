@@ -18,13 +18,13 @@ from pandas.api.types import is_numeric_dtype, is_string_dtype
 from .parse_string import parse_date 
 
 
-def load(file_template,startday,endday=None,read_freq='1D',file_not_found_ok=False,**kwargs):
+def load(file_template,startday=None,endday=None,read_freq='1D',file_not_found_ok=False,**kwargs):
     '''
     Load data from file for the time period from startday to endday.
     '''
     log = logging.getLogger(__name__)
-    if endday is None:
-        endday = startday
+    startday = startday if startday is not None else dt.datetime(2018,1,1)
+    endday   = endday   if endday   is not None else startday
     timesteps = pd.date_range(start=startday,end=endday,freq=read_freq).tolist()
     dat = pd.DataFrame()
     for idatetime in timesteps:
@@ -35,13 +35,13 @@ def load(file_template,startday,endday=None,read_freq='1D',file_not_found_ok=Fal
                 continue
             else:
                 log.error("Error: file not found: {}".format(ifile),exc_info=True)
-                raise
+                return None 
         idat = _load_single_file(ifile,**kwargs)
         dat  = dat.append(idat)
     return dat
 
 
-def _load_single_file(ifile,to_float=False,round_minutes=False):
+def _load_single_file(ifile,to_float=False,round_minutes=False,locations_filter=None,**kwargs):
     '''
     Load data from single file. 
     '''
@@ -49,10 +49,10 @@ def _load_single_file(ifile,to_float=False,round_minutes=False):
     log.info('Loading {}'.format(ifile)) 
     # determine date columns
     datecols = ['ISO8601']
-    file_hdr = pd.read_csv(ifile,nrows=1)
+    file_hdr = pd.read_csv(ifile,nrows=1,**kwargs)
     if 'localtime' in file_hdr:
         datecols.append('localtime')
-    dat = pd.read_csv(ifile,parse_dates=datecols,date_parser=lambda x: pd.datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'))
+    dat = pd.read_csv(ifile,parse_dates=datecols,date_parser=lambda x: pd.datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'),**kwargs)
     if round_minutes:
         dat['ISO8601'] = [dt.datetime(i.year,i.month,i.day,i.hour,0,0) for i in dat['ISO8601']]
     # backward compatibility:
@@ -66,6 +66,8 @@ def _load_single_file(ifile,to_float=False,round_minutes=False):
         dat = dat.rename(columns={"Lat": "lat"})
     if 'Lon' in dat.keys():
         dat = dat.rename(columns={"Lon": "lon"})
+    if locations_filter is not None: 
+        dat = dat.loc[dat['location'].isin(locations_filter)]
     # everything should be numeric except for a few fields
     if to_float:
         for k in list(dat.keys()):
