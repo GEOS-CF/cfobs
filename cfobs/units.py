@@ -13,9 +13,6 @@ import pandas as pd
 
 # constants
 RCONST  = 8.31   # gas constant, J K−1 mol−1 
-MW_O3   = 48.0   # MW of O3, g mol-1
-MW_NO2  = 46.0   # MW of NO2, g mol-1
-MW_CO   = 28.0   # MW of CO, g mol-1
 PPM2PPB = 1.0e+3 # conversion factor from ppmv to ppbv, unitless
 
 
