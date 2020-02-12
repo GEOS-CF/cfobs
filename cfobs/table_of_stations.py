@@ -26,7 +26,7 @@ def read_table_of_stations(stationsfile,obskey=""):
     return stationstable
 
 
-def update_stations_info(df,st,lats,lons):
+def update_stations_info(df,st,lats,lons,location_name_prefix=None):
     '''
     Update the stations information in both the observation data frame and the stations list.
     The stations table is a collection of all locations. Because the station names are not 
@@ -42,16 +42,16 @@ def update_stations_info(df,st,lats,lons):
     '''
     # Add dummy station if entry is empty. This makes the handling below easier
     if st.shape[0]==0:
-        st['location']          = ['unknown']
-        st['original_station_name']      = ['unknown']
-        st['lat']               = [-999.0]
-        st['lon']               = [-999.0]
-        st['latlon_id']         = [-999.0]
-        st['lat_gridded']       = [-999.0]
-        st['lon_gridded']       = [-999.0]
-        st['latlon_id_gridded'] = [-999.0]
-        st['location_gridded']  = ['unknown']
-        nstat                   = 0
+        st['location']              = ['unknown']
+        st['original_station_name'] = ['unknown']
+        st['lat']                   = [-999.0]
+        st['lon']                   = [-999.0]
+        st['latlon_id']             = [-999.0]
+        st['lat_gridded']           = [-999.0]
+        st['lon_gridded']           = [-999.0]
+        st['latlon_id_gridded']     = [-999.0]
+        st['location_gridded']      = ['unknown']
+        nstat                       = 0
     else:
         nstat = st.shape[0]
     # create a new entry that contains the lat/lon in one float.
@@ -64,10 +64,12 @@ def update_stations_info(df,st,lats,lons):
     missing = df.index.difference(st.index) 
     st = st.reset_index()
     df = df.reset_index()
+    # Prefix used for station names
+    station_prefix = location_name_prefix+"_Station_" if location_name_prefix is not None else "Station_"
     if len(missing) > 0:
         idf = df.loc[df['latlon_id'].isin(missing),['original_station_name','lat','lon','latlon_id']].groupby(['latlon_id']).min().reset_index()
         # Add unique station name. this is simply 'StationXX' where XX is a unique number
-        idf['location'] = ['Station'+str(i+nstat).zfill(7) for i in range(idf.shape[0])]
+        idf['location'] = [station_prefix+str(i+nstat).zfill(7) for i in range(idf.shape[0])]
         # Grid data onto grid and assign station name to it.
         if lats is not None and lons is not None:
             idf['lon_gridded']       = [lons[np.abs(lons-i).argmin()] for i in idf.lon.values] 

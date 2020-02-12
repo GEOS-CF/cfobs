@@ -17,7 +17,8 @@ import logging
 
 import cfobs.read_obs_data.read_openaq as openaq
 import cfobs.read_obs_data.read_aeronet as aeronet
-#import read_migris as migris
+import cfobs.read_obs_data.read_rio as rio 
+
 from .cfobs_save import save as cfobs_save
 from .table_of_stations import update_stations_info 
 from .table_of_stations import read_table_of_stations 
@@ -28,13 +29,13 @@ from .parse_string import parse_key
 
 # define read functions here 
 read_functions = {
-#        "migris": migris.read_migris,
         "openaq": openaq.read_openaq,
        "aeronet": aeronet.read_aeronet,
+        "rio": rio.read_rio,
         }
 
 
-def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,save=False,ofile='output_!k_%Y_%m_%d.csv',append_to_ofile=False,nfloats=-1,return_data=True,track_list_of_stations=False,stationsfile=None,gridres=1.0,**kwargs):
+def read_obs(obskey,startday,endday=None,read_freq='1D',time_delta=-1,save=False,ofile='output_!k_%Y_%m_%d.csv',append_to_ofile=False,nfloats=-1,return_data=True,track_list_of_stations=False,stationsfile=None,gridres=1.0,location_name_prefix=None,**kwargs):
     '''
     Read native observation data and returns a cfobs-compatible data frame. 
     Also save the data to a csv file if specified so.
@@ -93,6 +94,8 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,save=False,ofil
         track_list_of_stations is enabled.
     gridres : float
         Resolution of regular grid onto which the observations are mapped onto. 
+    location_name_prefix : str 
+        Prefix to be used for station name identifier. Passed to 'update_stations_info'.
     **kwargs : dict
         Additional arguments passed to the reading function.
     '''
@@ -111,6 +114,7 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,save=False,ofil
     # get latitudes/longitudes to grid data to
     lats,lons = get_lat_lon_of_regular_grid(gridres)
     # get sequence of days to read
+    startday = startday if startday is not None else dt.datetime(2018,1,1)
     if endday is None:
         endday = startday
     if read_freq is None:
@@ -133,7 +137,7 @@ def read_obs(obskey,startday,endday,read_freq='1D',time_delta=-1,save=False,ofil
             df = df.loc[~np.isnan(df['lon'])]
             df = df.loc[~np.isnan(df['value'])]
             # update location information
-            df, stationstable = update_stations_info(df,stationstable,lats,lons)
+            df, stationstable = update_stations_info(df,stationstable,lats,lons,location_name_prefix)
             # remove all data outside the provide date range.
             df = _check_dates(df,idate,time_delta)
         else:
