@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ****************************************************************************
-# core.py 
+# cfobs.py 
 # 
 # DESCRIPTION:
 # Contains the definition of the cfobs object, which compares observations 
@@ -48,6 +48,7 @@ class CFObs(object):
         self._data = self._data.append(data)
         self._startday = startday if self._startday is None else min(startday,self._startday)
         self._endday   = endday if self._endday is None else max(endday,self._endday)
+
 
     def __delete(self):
         '''Delete data from the object.'''
