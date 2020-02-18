@@ -16,16 +16,17 @@ RCONST  = 8.31   # gas constant, J K−1 mol−1
 PPM2PPB = 1.0e+3 # conversion factor from ppmv to ppbv, unitless
 
 
-def get_conv_ugm3_to_ppbv(dat,temperature_name='t10m',pressure_name='ps',mw=1.0):
+def get_conv_ugm3_to_ppbv(dat,temperature_name='t10m',temperature_scal=1.0,pressure_name='ps',pressure_scal=1.0,mw=1.0):
     '''
     Returns the conversion factor from ug/m3 to ppbv.
     Expects as inputs the temperature in kelvin and
-    pressure in Pa. 
+    pressure in Pa. Scale factors can be provided to 
+    convert fields accordingly.
     '''
     if temperature_name not in dat or pressure_name not in dat:
         return None
     else:
-        return dat[temperature_name]*RCONST*1.0e-6/(dat[pressure_name]*mw)*1.0e9
+        return dat[temperature_name]*temperature_scal*RCONST*1.0e-6/(dat[pressure_name]*pressure_scal*mw)*1.0e9
 
 
 def to_ppbv(df,conv_ugm3_to_ppbv=None,convscal=1.0,temp=None,press=None,mw=1.0,
