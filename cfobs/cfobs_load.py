@@ -41,7 +41,7 @@ def load(file_template,startday=None,endday=None,read_freq='1D',file_not_found_o
     return dat
 
 
-def _load_single_file(ifile,to_float=False,round_minutes=False,locations_filter=None,**kwargs):
+def _load_single_file(ifile,to_float=False,round_minutes=False,filter=None,**kwargs):
     '''
     Load data from single file. 
     '''
@@ -66,8 +66,10 @@ def _load_single_file(ifile,to_float=False,round_minutes=False,locations_filter=
         dat = dat.rename(columns={"Lat": "lat"})
     if 'Lon' in dat.keys():
         dat = dat.rename(columns={"Lon": "lon"})
-    if locations_filter is not None: 
-        dat = dat.loc[dat['location'].isin(locations_filter)]
+    if filter is not None:
+        for ifilter in filter:
+            log.debug('filtering for {}:{}'.format(ifilter,filter.get(ifilter)))
+            dat = dat.loc[dat[ifilter].isin(filter.get(ifilter))]
     # everything should be numeric except for a few fields
     if to_float:
         for k in list(dat.keys()):
