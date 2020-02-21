@@ -1,0 +1,45 @@
+ifile_template: '/discover/nobackup/projects/gmao/geos_cf_dev/ana/bias_correction/obs/quito/orig/%v.xlsx'
+
+locations:
+  BELISARIO:
+    name: "Belisario"
+    lat: -0.18
+    lon: -78.49
+  EL CAMAL:   
+    name: "ElCamal"
+    lat: -0.25
+    lon: -78.51
+  CARAPUNGO:
+    name: "Carapungo"
+    lat: -0.0983
+    lon: -78.4472
+  CENTRO:
+    name: "Centro"
+    lat: -0.22
+    lon: -78.51
+  COTOCOLLAO:
+    name: "Cotocollao"
+    lat: -0.1078
+    lon: -78.4972
+  GUAMANI:
+    name: "Guamani"
+    lat: -0.3308
+    lon: -78.5514
+  TUMBACO:
+    name: "Tumbaco"
+    lat: -0.21
+    lon: -78.40
+
+vars:
+  o3:
+    name_on_file: "O3"
+    unit: "ugm-3"
+  no2:
+    name_on_file: "NO2"
+    unit: "ugm-3"
+  pm25:
+    name_on_file: "PM2.5"
+    unit: "ugm-3"
+  pm10:
+    name_on_file: "PM10"
+    unit: "ugm-3"

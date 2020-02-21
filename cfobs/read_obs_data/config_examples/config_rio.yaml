@@ -1,0 +1,51 @@
+source_file: '/discover/nobackup/projects/gmao/geos_cf_dev/ana/bias_correction/obs/rio/orig/Dados_horarios_do_monitoramento_da_qualidade_do_ar__MonitorAr.csv'
+
+locations:
+  BG:
+    longname: "Bangu"
+  CG:
+    longname: "Campo_Grande"
+  CA:
+    longname: "Centro"
+  AV:
+    longname: "Copacabana"
+  IR:
+    longname: "Iraja"
+  PG:
+    longname: "Pedra_de_Guaratiba"
+  SC:
+    longname: "Sao_Cristovao"
+  SP:
+    longname: "Tijuca"
+
+vars:
+  Pressure:
+    name_on_file: "Pres"
+    unit: "hPa"
+  Temperature:
+    name_on_file: "Temp"
+    unit: "K"
+  Precipitation:
+    name_on_file: "Chuva"
+    unit: "mm"
+  so2:
+    name_on_file: "SO2"
+    unit: "ugm-3"
+  no2:
+    name_on_file: "NO2"
+    unit: "ugm-3"
+  no:
+    name_on_file: "NO"
+    unit: "ugm-3"
+  co:
+    name_on_file: "CO"
+    unit: "ugm-3"
+  o3:
+    name_on_file: "O3"
+    unit: "ugm-3"
+  pm25:
+    name_on_file: "PM2_5"
+    unit: "ugm-3"
+  pm10:
+    name_on_file: "PM10"
+    unit: "ugm-3"
