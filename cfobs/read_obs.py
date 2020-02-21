@@ -18,6 +18,7 @@ import logging
 import cfobs.read_obs_data.read_openaq as openaq
 import cfobs.read_obs_data.read_aeronet as aeronet
 import cfobs.read_obs_data.read_rio as rio 
+import cfobs.read_obs_data.read_quito as quito 
 
 from .cfobs_save import save as cfobs_save
 from .table_of_stations import update_stations_info 
@@ -32,6 +33,7 @@ read_functions = {
         "openaq": openaq.read_openaq,
        "aeronet": aeronet.read_aeronet,
         "rio": rio.read_rio,
+        "quito": quito.read_quito,
         }
 
 
