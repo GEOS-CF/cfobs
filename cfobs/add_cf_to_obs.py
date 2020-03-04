@@ -128,7 +128,7 @@ def _add_cf_data_to_df(df,idate,cf_config,map_config,obscol,modcol,unitcol):
     lons = dat['lons'].values
     lats = dat['lats'].values
     # Precompute conversion factor from ugm-3 to ppbv, using MW of 1.0
-    conv = get_conv_ugm3_to_ppbv(dat,'t10m','ps',1.0)
+    conv = get_conv_ugm3_to_ppbv(dat,temperature_name='t10m',pressure_name='ps',mw=1.0)
     # Update for all species, use the model <-> observation pairs specified in the
     # configuration file 
     for ivar in map_config: 
