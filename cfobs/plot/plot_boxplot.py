@@ -51,6 +51,8 @@ def plot(orig_df,iday,obstype='o3',modvar=None,plot_by_season=0,plot_by_region=1
         iseason = i+1 if plot_by_season>0 else 0
         if iseason>0:
             idf = seasons.reduce_data_to_season(df,iseason)
+        else:
+            idf = df.copy()
         if aggregate_by_location==1:
             df_stats = compute_metrics_by_location(
                        idat = idf,
@@ -60,7 +62,7 @@ def plot(orig_df,iday,obstype='o3',modvar=None,plot_by_season=0,plot_by_region=1
                        loccol=loccol,
                        minnobs=minnobs)
         else:
-            df_stats = compute_unaggregated_metrics(df,modcol,obscol)
+            df_stats = compute_unaggregated_metrics(idf,modcol,obscol)
         # Make plot
         ax = fig.add_subplot(nrow,ncol,i+1)
         ax = make_boxplot(ax,df_stats,statistic,plot_by_region,iseason,parse_vars(ylabel,obstype,modvar),**kwargs)
