@@ -36,15 +36,15 @@ class CFObs(object):
             self.load(ifile,**kwargs)
 
 
-    def load(self, **kwargs):
+    def load(self, ifile, **kwargs):
         '''Load previously saved data from a csv file.'''
         self.__delete()
-        self.add(**kwargs)
+        self.add(ifile, **kwargs)
 
 
-    def add(self, **kwargs):
+    def add(self, file_template, **kwargs):
         '''Add previously saved data from a csv file to existing data.'''
-        data, startday, endday = cfobs_load(**kwargs)
+        data, startday, endday = cfobs_load(file_template,**kwargs)
         self._data = self._data.append(data)
         self._startday = startday if self._startday is None else min(startday,self._startday)
         self._endday   = endday if self._endday is None else max(endday,self._endday)

@@ -38,7 +38,7 @@ def load(file_template,startday=None,endday=None,read_freq='1D',file_not_found_o
                 return None 
         idat = _load_single_file(ifile,**kwargs)
         dat  = dat.append(idat)
-    return dat
+    return dat, startday, endday
 
 
 def _load_single_file(ifile,to_float=False,round_minutes=False,filter=None,**kwargs):
