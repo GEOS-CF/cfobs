@@ -26,7 +26,7 @@ from ..statistics import compute_metrics_by_location
 from ..statistics import compute_unaggregated_metrics
 
 
-def plot(orig_df,iday,obstype='o3',modvar=None,plot_by_season=0,plot_by_region=1,regionsfile=None,title='!t (%Y-%m-%d)',modcol='conc_mod',obscol='conc_obs',loccol='location',ofile='boxplot_!t_%Y%m%d.png',statistic='bias',aggregate_by_location=0,minnobs=2,ylabel='!t',**kwargs):
+def plot(orig_df,iday,obstype='o3',modvar=None,plot_by_season=0,title='!t (%Y-%m-%d)',modcol='conc_mod',obscol='conc_obs',loccol='location',ofile='boxplot_!t_%Y%m%d.png',statistic='bias',aggregate_by_location=0,minnobs=2,ylabel='!t',hscale=5,vscale=5,**kwargs):
     '''
     Make boxplot of CF vs observation. 
     '''
@@ -43,9 +43,7 @@ def plot(orig_df,iday,obstype='o3',modvar=None,plot_by_season=0,plot_by_region=1
         ncol=4
     else:
         ncol=1
-    if plot_by_region==1:
-        df = set_regions(df,regionsfile=regionsfile) 
-    fig = plt.figure(figsize=(5*ncol,5*nrow))
+    fig = plt.figure(figsize=(hscale*ncol,vscale*nrow))
     for i in range(ncol):
         # Compute metrics
         iseason = i+1 if plot_by_season>0 else 0
@@ -65,7 +63,7 @@ def plot(orig_df,iday,obstype='o3',modvar=None,plot_by_season=0,plot_by_region=1
             df_stats = compute_unaggregated_metrics(idf,modcol,obscol)
         # Make plot
         ax = fig.add_subplot(nrow,ncol,i+1)
-        ax = make_boxplot(ax,df_stats,statistic,plot_by_region,iseason,parse_vars(ylabel,obstype,modvar),**kwargs)
+        ax = make_boxplot(ax,df_stats,statistic,iseason,parse_vars(ylabel,obstype,modvar),**kwargs)
         del(df_stats)
     title = parse_vars(title,obstype,modvar) 
     title = parse_date(title,iday)
@@ -78,11 +76,9 @@ def plot(orig_df,iday,obstype='o3',modvar=None,plot_by_season=0,plot_by_region=1
     return
 
 
-def make_boxplot(ax,df_stats,statistic,plot_by_region,season_number,ylabel,minval=None,maxval=None):
+def make_boxplot(ax,df_stats,statistic,season_number,ylabel,groupby=None,minval=None,maxval=None):
     '''Make the boxplot at the given axis.'''
 
-    #groupby = 'regionShortName' if plot_by_region else None 
-    groupby = 'region' if plot_by_region else None 
     df_stats.boxplot(column=statistic,by=groupby,ax=ax,rot=90)
     ax.set_xlabel('')
     if minval is not None and maxval is not None:
