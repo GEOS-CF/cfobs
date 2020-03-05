@@ -27,8 +27,6 @@ import pytz
 import pandas as pd
 import yaml
 
-import nappy
-
 
 def read_gaw_wdcrg(iday=None,ifiles='unknown',**kwargs):
     '''
@@ -53,6 +51,7 @@ def read_gaw_wdcrg(iday=None,ifiles='unknown',**kwargs):
 
 def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
     '''Read a single GAW WDCRG file.'''
+    import nappy
     log = logging.getLogger(__name__)
     log.info('Reading {}'.format(ifile))
     ds = nappy.openNAFile(ifile)
