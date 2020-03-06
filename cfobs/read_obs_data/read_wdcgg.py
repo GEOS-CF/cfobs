@@ -55,10 +55,15 @@ def _read_single_file(ifile,firstday=None,lastday=None):
         lines = f.readlines()
     nhdr,para,unit,name,lat,lon = _read_header(lines)
     dates,values = _read_data(lines,nhdr)
-    # eventually convert mg/m3 to ug/m3
+    # eventually do unit conversion 
     if 'mg/m3' in unit:
-        unit = 'ug/m3'
+        unit = 'ugm-3'
         values = [i*1000.0 for i in values]
+#    if 'ppm' in unit:
+#        unit = 'ppb'
+#        values = [i*1000.0 for i in values]
+    unit = 'ppmv' if 'ppm' in unit else unit
+    unit = 'ugm-3' if 'ug/m3' in unit else unit
     # construct array
     nrow = len(dates)
     idf = pd.DataFrame()
@@ -125,12 +130,26 @@ def _read_data(lines,nhdr):
         qc =  np.int(ivals[cqc])
         if qc < 1 or qc > 2:
             continue
-        idate = dt.datetime(np.int(ivals[cyr]),np.int(ivals[cmt]),np.int(ivals[cdy]),np.int(ivals[chr]),np.int(ivals[cmn]),0)
+        iyr = np.int(ivals[cyr])
+        if iyr < 1900:
+            continue
+        imt = np.int(ivals[cmt])
+        if imt < 1 or imt > 12:
+            continue
+        idy = np.int(ivals[cdy])
+        if idy < 1 or idy > 32: 
+            continue
+        ihr = np.int(ivals[chr])
+        if ihr < 0 or ihr > 23: 
+            continue
+        imn = np.int(ivals[cmn])
+        imn = np.max((np.min((59,imn)),0)) 
+        idate = dt.datetime(iyr,imt,idy,ihr,imn,0)
         values.append(np.float(ivals[cvl]))
         dates.append(idate)
     i = len(dates)
     j = len(lines)-nhdr
-    log.info('Read {} valid entries from {} total entries ({}%)'.format(i,j,np.float(i)/np.float(j)*100.0))
+    log.info('Read {:d} valid entries from {:d} total entries ({:.2f}%)'.format(i,j,np.float(i)/np.float(j)*100.0))
     return dates,values
 
 

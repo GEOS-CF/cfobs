@@ -63,7 +63,7 @@ def to_ppbv(df,conv_ugm3_to_ppbv=None,convscal=1.0,temp=None,press=None,mw=1.0,
         df.loc[iidx,colname] = df.loc[iidx,colname]*conv_ugm3_to_ppbv.values[latidx,lonidx]*convscal
 
 #---ppmv to ppbv 
-    iidx = df.loc[idx].index[df.loc[idx,unitcol]=='ppmv']
+    iidx = df.loc[idx].index['ppm' in df.loc[idx,unitcol]]
     if len(iidx>0):
         df.loc[iidx,colname] = df.loc[iidx,colname]*PPM2PPB
     return df

@@ -114,7 +114,7 @@ def _read_data(lines,nhdr):
         lons.append(np.float(ivals[cln]))
     i = len(dates)
     j = len(lines)-nhdr
-    log.info('Read {} valid entries from {} total entries ({}%)'.format(i,j,np.float(i)/np.float(j)*100.0))
+    log.info('Read {:d} valid entries from {:d} total entries ({:.2f}%)'.format(i,j,np.float(i)/np.float(j)*100.0))
     return dates,values,names,lats,lons
 
 

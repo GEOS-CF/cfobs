@@ -133,11 +133,14 @@ def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
             if 'nmol/mol' in u:
                 obsunit = 'ppbv'
                 scal = 1.0 
+            if 'mmol/mol' in u:
+                obsunit = 'ppmv'
+                scal = 1.0 
             if 'ug/m3' in u:
-                obsunit = 'ug/m3'
+                obsunit = 'ugm-3'
                 scal = 1.0 
             if 'ug N/m3' in u:
-                obsunit = 'ug/m3'
+                obsunit = 'ugm-3'
                 if obstype=='no2':
                     scal = 46./14.
                 if obstype=='no':
