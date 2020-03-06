@@ -21,7 +21,6 @@ import logging
 
 from ..parse_string import parse_date 
 from ..parse_string import parse_vars
-from ..regions import set_regions
 from ..statistics import compute_metrics_by_location
 from ..statistics import compute_unaggregated_metrics
 
