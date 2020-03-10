@@ -16,6 +16,7 @@ import pandas as pd
 import cfobs.plot.plot_map as pltmp 
 import cfobs.plot.plot_boxplot as bxplt 
 import cfobs.plot.plot_timeseries as ts 
+import cfobs.plot.plot_locations as loc 
 from .parse_string import parse_key 
 
 
@@ -24,6 +25,7 @@ plot_functions = {
         "map": pltmp.plot,
         "boxplot": bxplt.plot,
         "timeseries": ts.plot,
+        "locations": loc.plot,
         }
 
 
