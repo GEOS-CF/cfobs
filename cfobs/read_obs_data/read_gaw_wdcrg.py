@@ -116,6 +116,8 @@ def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
         # Skip standard deviation 
         if 'stddev' in v:
             continue
+        if 'numflag' in v:
+            continue
         # Species check
         vals = v.split(',')
         ofnd = False
@@ -149,6 +151,7 @@ def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
         log.warning('Cannot find proper obstype - skip entry: {}'.format(ifile))
         return None
     log.debug('species, unit, scalefactor: {}, {}, {}'.format(obstype,obsunit,scal))
+    log.debug('Will read concentration data from column: "{}"'.format(vnames[ocol]))
     obs  = np.array(ds['V'][ocol])*scal
     # Check for flags
     if 'numflag' in vnames[-1]:
