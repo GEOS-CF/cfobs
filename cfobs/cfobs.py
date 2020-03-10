@@ -19,6 +19,7 @@ from .cfobs_plot import plot as cfobs_plot
 from .read_obs import read_obs
 from .regions import set_regions
 from .add_cf_to_obs import add_cf as addcf 
+from .popdensity import set_popdens
 
 
 class CFObs(object):
@@ -78,6 +79,11 @@ class CFObs(object):
     def update_regions(self, regionsfile):
         '''Update regions information based on information in the regionsfile.'''
         self._data = set_regions(self._data, None, regionsfile)
+
+
+    def update_popdens(self, densfile, **kwargs):
+        '''Set / update population density information based on gridded population density data.''' 
+        self._data = set_popdens(self._data, densfile, **kwargs)
 
 
     def plot(self, plotkey, **kwargs):
