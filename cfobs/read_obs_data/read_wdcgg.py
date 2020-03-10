@@ -62,8 +62,9 @@ def _read_single_file(ifile,firstday=None,lastday=None):
 #    if 'ppm' in unit:
 #        unit = 'ppb'
 #        values = [i*1000.0 for i in values]
-    unit = 'ppmv' if 'ppm' in unit else unit
-    unit = 'ugm-3' if 'ug/m3' in unit else unit
+    unit = 'ppm' if 'ppm' in unit else unit
+    unit = 'ugm-3' if 'g/m3' in unit else unit
+    unit = 'ugm-3' if 'gm-3' in unit else unit
     # construct array
     nrow = len(dates)
     idf = pd.DataFrame()
