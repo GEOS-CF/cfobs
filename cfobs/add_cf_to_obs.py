@@ -168,9 +168,12 @@ def _add_cf_data_to_df(df,idate,cf_config,map_config,obscol,modcol,unitcol):
         unit = var_config.get('unit','unknown') 
         df.loc[idx,unitcol] = unit
         if unit=='ppbv':
+            log.debug('Converting to ppbv...')
             assert('mw' in var_config), 'Cannot convert to ppbv, please provide `mw` in configuration file: {}'.format(ivar)
             assert(conv is not None), 'Cannot convert to ppbv, conversion factor does not exist - please specifiy t10m and ps in configuration file'
             df = to_ppbv(df,idx=idx,conv_ugm3_to_ppbv=conv,convscal=1./var_config['mw'])
+    # return sorted array
+    df = df.sort_values(by='ISO8601')
     return rc, df
 
 
