@@ -86,15 +86,15 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
     return
 
 
-def make_timeseries(ax,idf,ititle,ylabel,modcol='conc_mod',obscol='conc_obs',minval=0.0,maxval=None):
+def make_timeseries(ax,idf,ititle,ylabel,modcol='conc_mod',obscol='conc_obs',minval=0.0,maxval=None,modcolor='black',obscolor='red'):
     '''Make the timeseries at the given axis.'''
 
     # Get values by months
     grp = idf.groupby('Month')
     mn = grp.mean().reset_index()
     sd = grp.std().reset_index()
-    l1 = ax.errorbar(x=mn.Month,y=mn[modcol],yerr=sd[modcol],fmt='-o',color='black')
-    l2 = ax.errorbar(x=mn.Month,y=mn[obscol],yerr=sd[obscol],fmt='-o',color='red')
+    l1 = ax.errorbar(x=mn.Month,y=mn[modcol],yerr=sd[modcol],fmt='-o',color=modcolor)
+    l2 = ax.errorbar(x=mn.Month,y=mn[obscol],yerr=sd[obscol],fmt='-o',color=obscolor)
     _ = plt.xticks(np.arange(12)+1,MONTHSLABEL)
     if minval is not None and maxval is not None:
         _ = ax.set_ylim(minval,maxval)
