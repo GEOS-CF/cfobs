@@ -12,6 +12,7 @@ import os
 import yaml
 import numpy as np
 import logging
+import requests
 
 
 def define_regions(regionsfile):
@@ -50,4 +51,8 @@ def set_regions(df,regions=None,regionsfile=""):
     return df
 
 
-
+def get_timezone(lat,lon):
+    '''Return the timezone for the given lat/lon, using tzwhere'''
+    from tzwhere import tzwhere
+    tz = tzwhere.tzwhere(forceTZ=True)
+    return tz.tzNameAt(lat,lon,forceTZ=True)
