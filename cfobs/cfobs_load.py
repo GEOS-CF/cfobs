@@ -16,6 +16,7 @@ import logging
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 
 from .parse_string import parse_date 
+from .regions import set_regions
 
 
 def load(file_template,startday=None,endday=None,read_freq='1D',file_not_found_ok=False,**kwargs):
@@ -41,7 +42,7 @@ def load(file_template,startday=None,endday=None,read_freq='1D',file_not_found_o
     return dat, startday, endday
 
 
-def _load_single_file(ifile,to_float=False,round_minutes=False,filter=None,**kwargs):
+def _load_single_file(ifile,to_float=False,round_minutes=False,filter=None,regions=None,**kwargs):
     '''
     Load data from single file. 
     '''
@@ -78,4 +79,7 @@ def _load_single_file(ifile,to_float=False,round_minutes=False,filter=None,**kwa
             if not is_numeric_dtype(dat[k]):
                 log.debug("Converting to float: "+k)
                 dat[k] = dat[k].astype(float)
+    # eventually set/update regions
+    if regions is not None:
+        dat = set_regions(dat,regions=regions)
     return dat
