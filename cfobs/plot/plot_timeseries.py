@@ -26,7 +26,7 @@ from ..parse_string import parse_vars
 # PARAMETER
 MONTHSLABEL = ["J","F","M","A","M","J","J","A","S","O","N","D"]
 
-def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='ts_!t_%Y%m%d.png',subtitle='!n, !lat N !lon E',ylabel='!t',hscale=5,vscale=5,sort_by_lat=True,**kwargs):
+def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='ts_!t_%Y%m%d.png',subtitle='!n, !latN !lonE',ylabel='!t',leglabel=None,nrow=4,ncol=4,hscale=5,vscale=5,sort_by_lat=True,**kwargs):
     '''
     Make timeseries of CF vs observation. 
     '''
@@ -47,9 +47,7 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
             iidf = df.loc[df[by]==p]
             lats.append(iidf.lat.values.mean())
         panel_names = [x for _,x in sorted(zip(lats,panel_names),reverse=True)] 
-    # 16 figures per panel
-    nrow = 4
-    ncol = 4
+    # Get number of figures 
     nfigures = np.int(np.ceil(np.float(npanels)/(ncol*nrow)))
     cnt = 0
     ylab = parse_vars(ylabel,obstype,modvar)
@@ -60,8 +58,12 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
             idf = df.loc[df[by]==panel_names[cnt]]
             ilon  = idf.lon.values.mean()
             ilat  = idf.lat.values.mean()
-            iname = panel_names[cnt]
-            ititle = subtitle.replace('!n',iname).replace('!lon','{0:.2f}'.format(ilon)).replace('!lat','{0:.2f}'.format(ilat))
+            iname = str(panel_names[cnt])
+            if type(subtitle)==type([]):
+                isbtitle = subtitle[i]
+            else:
+                isbtitle = subtitle
+            ititle = isbtitle.replace('!n',iname).replace('!lon','{0:.2f}'.format(ilon)).replace('!lat','{0:.2f}'.format(ilat))
             ax = fig.add_subplot(nrow,ncol,i+1)
             ax,l1,l2 = make_timeseries(ax,idf,ititle,ylab,**kwargs) 
             cnt+=1
@@ -71,7 +73,8 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
             title = parse_vars(title,obstype,modvar) 
             title = parse_date(title,iday)
             fig.suptitle(title)
-        fig.legend( [l1,l2], ['CF','obs'], 'lower center', ncol=2)
+        leglabel = leglabel if leglabel is not None else ['CF','obs']
+        fig.legend( [l1,l2], leglabel, 'lower center', ncol=2)
         #fig.legend( [l1,l2], ['CF','obs'], ncol=2)
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         # add figure number
@@ -86,18 +89,29 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
     return
 
 
-def make_timeseries(ax,idf,ititle,ylabel,modcol='conc_mod',obscol='conc_obs',minval=0.0,maxval=None,modcolor='black',obscolor='red'):
+def make_timeseries(ax,idf,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,modcol='conc_mod',obscol='conc_obs',minval=None,maxval=None,modcolor='black',obscolor='red',xoffset=0.1,filter=None,groupby_value='Month',):
     '''Make the timeseries at the given axis.'''
 
+    # remove 'outliers' if specified so
+    if filter is not None:
+        q_low = idf[obscol].quantile(1.0-filter)
+        q_hi  = idf[obscol].quantile(filter)
+        idf = idf.loc[(idf[obscol] < q_hi) & (idf[obscol] > q_low)] 
     # Get values by months
-    grp = idf.groupby('Month')
+    grp = idf.groupby(groupby_value)
     mn = grp.mean().reset_index()
     sd = grp.std().reset_index()
-    l1 = ax.errorbar(x=mn.Month,y=mn[modcol],yerr=sd[modcol],fmt='-o',color=modcolor)
-    l2 = ax.errorbar(x=mn.Month,y=mn[obscol],yerr=sd[obscol],fmt='-o',color=obscolor)
-    _ = plt.xticks(np.arange(12)+1,MONTHSLABEL)
-    if minval is not None and maxval is not None:
-        _ = ax.set_ylim(minval,maxval)
+    x1 = [i-xoffset for i in mn[groupby_value].values]
+    x2 = [i+xoffset for i in mn[groupby_value].values]
+    l1 = ax.errorbar(x=x1,y=mn[modcol],yerr=sd[modcol],fmt='-o',color=modcolor)
+    l2 = ax.errorbar(x=x2,y=mn[obscol],yerr=sd[obscol],fmt='-o',color=obscolor)
+    if xticks_loc is None:
+        xticks_loc = np.arange(len(xlabel))+1
+    _ = plt.xticks(xticks_loc,xlabel)
+    if minval is not None:
+        _ = ax.set_ylim(bottom=minval)
+    if maxval is not None:
+        _ = ax.set_ylim(top=maxval)
     _ = ax.set_ylabel(ylabel)
     _ = ax.set_title(ititle)
     return ax,l1,l2
