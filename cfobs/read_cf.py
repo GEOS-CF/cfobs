@@ -16,6 +16,8 @@ import glob
 import xarray as xr
 import yaml
 import logging
+from multiprocessing.pool import ThreadPool
+import dask
 
 from .parse_string import parse_date 
 from .systools import load_config
@@ -79,6 +81,7 @@ def read_cf_data_2d(idate,config=None,config_file=None,suppress_messages=False):
 
     This routine returns a dictionary with the 2d arrays of all variables.
     '''
+    dask.config.set(pool=ThreadPool(10))
     log = logging.getLogger(__name__)
     # Configuration
     if config is None:
