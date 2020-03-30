@@ -23,6 +23,7 @@ import cfobs.read_obs_data.read_dos as dos
 import cfobs.read_obs_data.read_gaw_wdcrg as gaw_wdcrg
 import cfobs.read_obs_data.read_wdcgg as wdcgg
 import cfobs.read_obs_data.read_gmd as gmd
+import cfobs.read_obs_data.read_spartan as spartan 
 
 from .cfobs_save import save as cfobs_save
 from .table_of_stations import update_stations_info 
@@ -41,6 +42,7 @@ read_functions = {
         "dos": dos.read_dos,
         "gaw_wdcrg": gaw_wdcrg.read_gaw_wdcrg,
         "wdcgg": wdcgg.read_wdcgg,
+        "spartan": spartan.read_spartan,
         "gmd_co": gmd.read_gmd_co,
         }
 
