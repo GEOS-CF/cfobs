@@ -59,6 +59,3 @@ def set_popdens(df,densfile,densvar="PopulationDensity",timeslice=dt.datetime(20
     df[colname] = pop.values[latidx,lonidx]
     ds.close()
     return df
-
-
-
