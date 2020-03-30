@@ -29,7 +29,7 @@ plot_functions = {
         }
 
 
-def plot(df,plotkey,iday,ofile='figures/figure_!k_%Y%m%d.csv',**kwargs):
+def plot(df,plotkey,iday,ofile='figures/figure_!k_%Y%m%d.png',**kwargs):
     '''
     Plot handler. This is a wrapper that calls down to the individual plot functions 
     '''
