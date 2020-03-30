@@ -51,7 +51,7 @@ def read_aeronet(start,end=None,localfiles=None,**kwargs):
     # sort data and strip empty spaces
     df = df.sort_values(by="ISO8601")
     df['original_station_name'] = [i.replace(" ","") for i in df['original_station_name']]
-    df['source'] = ['Aeronet' for i in df.shape[0]]
+    df['source'] = ['Aeronet' for i in range(df.shape[0])]
     log.info('Read {:,} Aeronet observations'.format(df.shape[0]))
     return df
 
@@ -68,8 +68,8 @@ def read_aeronet_locally(localfiles,start,end,show_progress=True,**kwargs):
     df = pd.DataFrame()
     # read data station by station, merge into main dataframe
     for ifile in tqdm(files,disable=(not show_progress)):
-        log.info('reading {}'.format(file))
-        tb = pd.read_csv(file,sep=",",skiprows=LOCALFILE_SKIPROWS)
+        log.info('reading {}'.format(ifile))
+        tb = pd.read_csv(ifile,sep=",",skiprows=LOCALFILE_SKIPROWS)
         idf = read_aeronet_table(tb,start,end,**kwargs)
         if idf.shape[0] > 0:
             df = df.append(idf)
