@@ -20,6 +20,7 @@ from .read_obs import read_obs
 from .regions import set_regions
 from .add_cf_to_obs import add_cf as addcf 
 from .popdensity import set_popdens
+from .cfobs2nc import cfobs2nc
 
 
 class CFObs(object):
@@ -89,4 +90,8 @@ class CFObs(object):
     def plot(self, plotkey, **kwargs):
         '''Make a plot of the data.'''
         cfobs_plot(self._data, plotkey, self._endday, **kwargs)
+
+    def to_nc(self, ofile, **kwargs):
+        '''Write data to gridded netCDF file'''
+        cfobs2nc(self._data, ofile, **kwargs)
 
