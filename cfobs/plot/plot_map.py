@@ -92,7 +92,7 @@ def plot(orig_df,iday,endday=None,obstype='o3',plot_by_season=0,mapfiles='',modv
     return
 
 
-def _plot_map_and_statistics(fig,gs,idx,cf,dat,season_name=None,statistic='IOA',maxbias=50.0,maxstat=50.0,minval=0.0,maxval=80.0,dotedgecolor=None,dotsize=10,latcol='lat',loncol='lon',obscol='conc_obs',maplabel='None',colormap='rainbow'):
+def _plot_map_and_statistics(fig,gs,idx,cf,dat,season_name=None,statistic='IOA',maxbias=50.0,maxstat=50.0,minval=0.0,maxval=80.0,dotedgecolor=None,dotsize=10,latcol='lat',loncol='lon',obscol='conc_obs',maplabel='None',colormap='rainbow',extent=None):
     '''
     Plots a global map with the annual average model field and the observations overlaid to it.
     '''
@@ -103,6 +103,8 @@ def _plot_map_and_statistics(fig,gs,idx,cf,dat,season_name=None,statistic='IOA',
     # plot map, overlay observations 
     colormap = get_cmap(colormap)
     ax = fig.add_subplot(gs[0,idx],projection=proj)
+    if extent is not None:
+        ax.set_extent(extent,crs=proj)
     cf1 = ax.add_feature(cartopy.feature.BORDERS, edgecolor="grey")
     cf2 = ax.add_feature(cartopy.feature.COASTLINE, edgecolor="black")
     flev = np.linspace(minval,maxval,51)
@@ -115,13 +117,13 @@ def _plot_map_and_statistics(fig,gs,idx,cf,dat,season_name=None,statistic='IOA',
     if season_name is not None:
         ax.set_title(season_name)
     # Maps with difference between model and observation 
-    _plot_statistics(fig,gs[1,idx],'bias',proj,dat,maxbias,maxstat,loncol,latcol,dotsize,dotedgecolor)
+    _plot_statistics(fig,gs[1,idx],'bias',proj,dat,maxbias,maxstat,loncol,latcol,dotsize,dotedgecolor,extent)
     if statistic is not None and statistic != "":
-        _plot_statistics(fig,gs[2,idx],statistic,proj,dat,maxbias,maxstat,loncol,latcol,dotsize,dotedgecolor)
+        _plot_statistics(fig,gs[2,idx],statistic,proj,dat,maxbias,maxstat,loncol,latcol,dotsize,dotedgecolor,extent)
     return
 
 
-def _plot_statistics(fig,this_gs,stat,proj,dat,maxbias,maxstat,loncol,latcol,dotsize,dotedgecolor):
+def _plot_statistics(fig,this_gs,stat,proj,dat,maxbias,maxstat,loncol,latcol,dotsize,dotedgecolor,extent):
     '''
     Makes a plot of the given statistical metric
     '''
@@ -175,7 +177,10 @@ def _plot_statistics(fig,this_gs,stat,proj,dat,maxbias,maxstat,loncol,latcol,dot
         ylab = 'Mean absolute error'
         extd = 'max'
     ax = fig.add_subplot(this_gs,projection=proj)
-    ax.set_global()
+    if extent is None:
+        ax.set_global()
+    else:
+        ax.set_extent(extent,crs=proj)
     cf1 = ax.add_feature(cartopy.feature.BORDERS, edgecolor="grey")
     cf2 = ax.add_feature(cartopy.feature.COASTLINE, edgecolor="black")
     sc = _add_obs_to_map(ax,dat[loncol].values,dat[latcol].values,dat[sname].values,dotsize,dotedgecolor,colormap,proj,minv,maxv)
