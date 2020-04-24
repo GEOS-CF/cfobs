@@ -18,6 +18,7 @@ from .cfobs_save import save as cfobs_save
 from .cfobs_plot import plot as cfobs_plot
 from .read_obs import read_obs
 from .regions import set_regions
+from .table_of_stations import write_locations_to_yaml as write_locations_to_yaml
 from .add_cf_to_obs import add_cf as addcf 
 from .popdensity import set_popdens
 from .cfobs2nc import cfobs2nc
@@ -94,4 +95,8 @@ class CFObs(object):
     def to_nc(self, ofile, **kwargs):
         '''Write data to gridded netCDF file'''
         cfobs2nc(self._data, ofile, **kwargs)
+
+    def write_locations_to_yaml(self, **kwargs):
+        '''Write all unique location information to a YAML file'''
+        write_locations_to_yaml(self._data,**kwargs)
 

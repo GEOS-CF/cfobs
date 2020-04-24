@@ -12,6 +12,8 @@ import os
 import numpy as np
 import datetime as dt
 import pandas as pd
+import logging
+import yaml
 
 
 def read_table_of_stations(stationsfile,obskey=""):
@@ -111,3 +113,25 @@ def get_lat_lon_of_regular_grid(gridres=1.0):
     lats = np.arange(-90.0+gridres_half,90.0,gridres)
     lons = np.arange(-180.0+gridres_half,180.0,gridres)
     return lats,lons
+
+
+def write_locations_to_yaml(df,colname_loc='location',colname_lat='lat',colname_lon='lon',ofile='locations.yaml'):
+    '''
+    Get all unique station names and write them to a YAML file
+    '''
+    log = logging.getLogger(__name__)
+    locs = {}
+#---Create dictionary of (unique) locations in file
+    for iloc in df[colname_loc].unique():
+        # Skip if entry already exists in yaml file
+        if iloc in locs.keys():
+            continue
+        ilat = float(df[df[colname_loc]==iloc][colname_lat].values[0])
+        ilon = float(df[df[colname_loc]==iloc][colname_lon].values[0])
+        locs[iloc] = {'lat': ilat, 'lon': ilon}
+#---Write to yaml file
+    with open(ofile,'w') as file:
+        yaml.safe_dump(locs, file, encoding='utf-8', allow_unicode=True)
+    log.info('Written YAML file: {}'.format(ofile))
+    return
+
