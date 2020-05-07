@@ -1,0 +1,23 @@
+input_files: '/discover/nobackup/cakelle2/obs/AQ/Milan/*.csv'
+
+locations:
+  Milano_vialeMarche:
+    name: "VialeMarche"
+    lat: 45.5000
+    lon: 9.1910
+  Milano_Verziere:
+    name: "Verziere"
+    lat: 45.4631
+    lon: 9.1958
+  Milano_vialeLiguria:
+    name: "VialeLiguria"
+    lat: 45.4440 
+    lon: 9.1702
+  Milano_viaSenato:
+    name: "viaSenato"
+    lat: 45.4701
+    lon: 9.1979
+  Milano_PascalCittàStudi:
+    name: "PascalCittaStudi"
+    lat: 45.4790
+    lon: 9.2303

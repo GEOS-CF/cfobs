@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 # constants
-RCONST  = 8.31   # gas constant, J K−1 mol−1 
+RCONST  = 8.3145 # gas constant, J K−1 mol−1 
 PPM2PPB = 1.0e+3 # conversion factor from ppmv to ppbv, unitless
 
 

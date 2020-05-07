@@ -38,7 +38,7 @@ def load(file_template,startday=None,endday=None,read_freq='1D',file_not_found_o
                 log.error("Error: file not found: {}".format(ifile),exc_info=True)
                 return None 
         idat = _load_single_file(ifile,**kwargs)
-        dat  = dat.append(idat)
+        dat  = dat.append(idat,sort=True)
     return dat, startday, endday
 
 
