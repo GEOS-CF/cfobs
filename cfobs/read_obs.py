@@ -25,6 +25,9 @@ import cfobs.read_obs_data.read_wdcgg as wdcgg
 import cfobs.read_obs_data.read_gmd as gmd
 import cfobs.read_obs_data.read_spartan as spartan 
 import cfobs.read_obs_data.read_milan as milan 
+import cfobs.read_obs_data.read_eea as eea
+import cfobs.read_obs_data.read_japan as japan 
+import cfobs.read_obs_data.read_melbourne as melbourne 
 
 from .cfobs_save import save as cfobs_save
 from .table_of_stations import update_stations_info 
@@ -46,6 +49,9 @@ read_functions = {
         "spartan": spartan.read_spartan,
         "gmd_co": gmd.read_gmd_co,
         "milan": milan.read_milan,
+        "eea": eea.read_eea,
+        "japan": japan.read_japan,
+        "melbourne": melbourne.read_melbourne,
         }
 
 

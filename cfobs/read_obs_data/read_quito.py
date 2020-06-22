@@ -105,5 +105,8 @@ def _read_file(config,var,firstday=None,lastday=None,skipnan=True,remove_negativ
     idat = idat.sort_values(by='ISO8601')
     nrow_full = idat.shape[0]
     idat['obstype'] = [var for i in range(nrow_full)]
+    if varunit=='mgm-3':
+        idat['value'] = idat['value'].values*1.0e3
+        varunit='ugm-3'
     idat['unit'] = [varunit for i in range(nrow_full)]
     return idat

@@ -22,9 +22,6 @@ import numpy as np
 import datetime as dt
 import pandas as pd
 
-from ..parse_string import parse_date
-from ..systools import load_config
-
 
 def read_dos(iday=None,ifile=None,firstday=None,lastday=None,time_offset=0):
     '''
