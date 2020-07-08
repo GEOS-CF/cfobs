@@ -71,7 +71,8 @@ def read_rio_api(iday,config,time_offset=0):
     tb = pd.read_csv(ifile,sep=",") ##,encoding="ISO-8859-1")
     # get dates
     offset = dt.timedelta(minutes=time_offset)
-    local_time = [dt.datetime.strptime(i,"%Y-%m-%dT%H:%M:00.000Z")+offset for i in tb['Data']]
+    #local_time = [dt.datetime.strptime(i,"%Y-%m-%dT%H:%M:00.000Z")+offset for i in tb['Data']]
+    local_time = [dt.datetime.strptime(i,"%Y/%m/%d %H:%M:00+00")+offset for i in tb['Data']]
     rio = timezone('America/Buenos_Aires')
     utc = pytz.utc
     dates = [rio.localize(i).astimezone(utc) for i in local_time]
