@@ -62,12 +62,12 @@ def _read_file(config,var,firstday=None,lastday=None,skipnan=True,remove_negativ
     xl = pd.ExcelFile(ifile)
     df = xl.parse(xl.sheet_names[0])
     # read dates and convert to UTC
-    datecol = df.keys()[0]
-    dates_local = df[datecol].values[1:]
     quito = timezone('America/Bogota')
     utc = pytz.utc
-    dates_utc = [quito.localize(i).astimezone(utc) for i in dates_local]
-    ndates = len(dates_utc)
+    datecol = df.keys()[0]
+    dates_local_orig = df[datecol].values[1:]
+    dates_local = [dt.datetime(i.year,i.month,i.day,i.hour,0,0) for i in dates_local_orig]
+    #dates_utc = [quito.localize(i).astimezone(utc) for i in dates_local]
     # accumulate data by location in dataframe
     idat = pd.DataFrame()
     for iloc in config.get('locations'):
@@ -78,11 +78,12 @@ def _read_file(config,var,firstday=None,lastday=None,skipnan=True,remove_negativ
         lat = config.get('locations').get(iloc).get('lat',np.nan)
         lon = config.get('locations').get(iloc).get('lon',np.nan)
         log.info('Parsing {} (name={}; lat={}, lon={})'.format(iloc,station_name,lat,lon))
-        ldat = pd.DataFrame()
-        ldat['ISO8601'] = dates_utc
-        ldat['localtime'] = dates_local
+        tmpdat = pd.DataFrame()
+        tmpdat['localtime'] = dates_local
         values_as_char = [ str(i).replace(' ','') for i in df[iloc].values[1:] ]
-        ldat['value'] = [ np.nan if i=='' else np.float(i) for i in values_as_char ]
+        tmpdat['value'] = [ np.nan if i=='' else np.float(i) for i in values_as_char ]
+        ldat = tmpdat.groupby('localtime').mean().reset_index()
+        ldat['ISO8601'] = [quito.localize(i).astimezone(utc) for i in ldat.localtime]
         if skipnan:
             ldat = ldat.loc[~np.isnan(ldat.value)]
         if remove_negatives:
