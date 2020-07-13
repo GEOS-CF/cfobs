@@ -26,6 +26,7 @@ import cfobs.read_obs_data.read_gmd as gmd
 import cfobs.read_obs_data.read_spartan as spartan 
 import cfobs.read_obs_data.read_milan as milan 
 import cfobs.read_obs_data.read_eea as eea
+import cfobs.read_obs_data.read_wri as wri
 import cfobs.read_obs_data.read_japan as japan 
 import cfobs.read_obs_data.read_melbourne as melbourne 
 
@@ -50,6 +51,7 @@ read_functions = {
         "gmd_co": gmd.read_gmd_co,
         "milan": milan.read_milan,
         "eea": eea.read_eea,
+        "wri": wri.read_wri,
         "japan": japan.read_japan,
         "melbourne": melbourne.read_melbourne,
         }

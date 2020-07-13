@@ -15,6 +15,15 @@ import pandas as pd
 RCONST  = 8.3145 # gas constant, J K−1 mol−1 
 PPM2PPB = 1.0e+3 # conversion factor from ppmv to ppbv, unitless
 
+# standard temperature and pressure
+STEMP = 273.15 #[K] 
+SPRESS = 100000 #[Pa]
+
+
+def conv_ugm3_to_ppbv_std(mw):
+    '''Returns the conversion factor from ug/m3 to ppbv under standard conditions'''
+    return STEMP * RCONST * 1.0e-6 / (SPRESS * mw) * 1.0e9
+
 
 def get_conv_ugm3_to_ppbv(dat,temperature_name='t10m',temperature_scal=1.0,pressure_name='ps',pressure_scal=1.0,mw=1.0):
     '''
