@@ -32,7 +32,7 @@ from ..read_cf import get_cf_map_taverage
 from ..regions import define_regions
 
 
-def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',labels=None,markers='o',markersize=5,ofile='locations.png',title='Observation locations',colors=['red','blue','pink','yellow','green'],regionsfile=None,**kwargs):
+def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',labels=None,markers='o',markersize=5,ofile='locations.png',title='Observation locations',colors=['red','blue','pink','yellow','green'],regionsfile=None,colormap=True,**kwargs):
     '''Make a map with the locations of all measurement sites.'''
 
     log = logging.getLogger(__name__)
@@ -40,7 +40,8 @@ def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',lab
     gs  = GridSpec(1,1)
     proj = ccrs.PlateCarree()
     ax = fig.add_subplot(gs[0,0],projection=proj)
-    _ = ax.stock_img()
+    if colormap:
+        _ = ax.stock_img()
     _ = ax.coastlines()
     types = list(df[typeby].unique()) if types is None else types
     orig_labels = []

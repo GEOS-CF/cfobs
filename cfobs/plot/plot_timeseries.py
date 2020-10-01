@@ -65,7 +65,7 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
                 isbtitle = subtitle
             ititle = isbtitle.replace('!n',iname).replace('!lon','{0:.2f}'.format(ilon)).replace('!lat','{0:.2f}'.format(ilat))
             ax = fig.add_subplot(nrow,ncol,i+1)
-            ax,l1,l2 = make_timeseries(ax,idf,ititle,ylab,**kwargs) 
+            ax,l1,l2 = make_timeseries(ax,i,idf,ititle,ylab,**kwargs) 
             cnt+=1
             if cnt==npanels:
                 break
@@ -89,20 +89,27 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
     return
 
 
-def make_timeseries(ax,idf,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,modcol='conc_mod',obscol='conc_obs',minval=None,maxval=None,modcolor='black',obscolor='red',xoffset=0.1,filter=None,groupby_value='Month',):
+def make_timeseries(ax,i,idf,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,modcol='conc_mod',obscol='conc_obs',minval=None,maxval=None,modcolor='black',obscolor='red',xoffset=0.1,filter=None,groupby_value='Month',ninset=None):
     '''Make the timeseries at the given axis.'''
 
+    log = logging.getLogger(__name__)
     # remove 'outliers' if specified so
     if filter is not None:
         q_low = idf[obscol].quantile(1.0-filter)
         q_hi  = idf[obscol].quantile(filter)
         idf = idf.loc[(idf[obscol] < q_hi) & (idf[obscol] > q_low)] 
-    # Get values by months
+    # Get grouped values 
     grp = idf.groupby(groupby_value)
     mn = grp.mean().reset_index()
     sd = grp.std().reset_index()
     x1 = [i-xoffset for i in mn[groupby_value].values]
     x2 = [i+xoffset for i in mn[groupby_value].values]
+    # select colors
+    if type(modcolor)==type([]):
+        modcolor = modcolor[np.mod(i,len(modcolor))]
+    if type(obscolor)==type([]):
+        obscolor = obscolor[np.mod(i,len(obscolor))]
+    # make plot
     l1 = ax.errorbar(x=x1,y=mn[modcol],yerr=sd[modcol],fmt='-o',color=modcolor)
     l2 = ax.errorbar(x=x2,y=mn[obscol],yerr=sd[obscol],fmt='-o',color=obscolor)
     if xticks_loc is None:
@@ -114,4 +121,10 @@ def make_timeseries(ax,idf,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,modc
         _ = ax.set_ylim(top=maxval)
     _ = ax.set_ylabel(ylabel)
     _ = ax.set_title(ititle)
+    if ninset is not None:
+        if ninset in idf:
+            ilabel = 'N={}'.format(len(idf[ninset].unique()))
+            ax.text(0.02,0.98,ilabel,horizontalalignment='left',verticalalignment='top',transform=ax.transAxes)
+        else:
+            log.warning('Cannot show number in inset - column {} not found'.format(ninset))
     return ax,l1,l2
