@@ -53,6 +53,8 @@ def _load_single_file(ifile,to_float=False,round_minutes=False,filter=None,regio
     file_hdr = pd.read_csv(ifile,nrows=1,**kwargs)
     if 'localtime' in file_hdr:
         datecols.append('localtime')
+    if 'ISO8601_init' in file_hdr:
+        datecols.append('ISO8601_init')
     dat = pd.read_csv(ifile,parse_dates=datecols,date_parser=lambda x: pd.datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'),**kwargs)
     if round_minutes:
         dat['ISO8601'] = [dt.datetime(i.year,i.month,i.day,i.hour,0,0) for i in dat['ISO8601']]
