@@ -32,7 +32,7 @@ from ..read_cf import get_cf_map_taverage
 from ..regions import define_regions
 
 
-def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',labels=None,markers='o',markersize=5,ofile='locations.png',title='Observation locations',colors=['red','blue','pink','yellow','green'],regionsfile=None,colormap=True,**kwargs):
+def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',labels=None,markers='o',markersize=5,ofile='locations.png',title='Observation locations',colors=['red','blue','pink','yellow','green'],regionsfile=None,colormap=True,markerscale=1.,**kwargs):
     '''Make a map with the locations of all measurement sites.'''
 
     log = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',lab
         handles.append(sc1)
         orig_labels.append(t)
     labels = labels if labels is not None else orig_labels
-    fig.legend( handles=handles, labels=labels, ncol=len(labels), loc='lower center' )
+    fig.legend( handles=handles, labels=labels, ncol=len(labels), loc='lower center', markerscale=markerscale )
     # eventually add regions
     if regionsfile is not None:
         regions = define_regions(regionsfile)
