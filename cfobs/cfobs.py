@@ -42,7 +42,7 @@ class CFObs(object):
     def load(self, ifile, **kwargs):
         '''Load previously saved data from a csv file.'''
         self.__delete()
-        self.add(ifile, **kwargs)
+        self.add(ifile, low_memory=False, **kwargs)
 
 
     def add(self, file_template, **kwargs):
