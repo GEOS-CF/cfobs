@@ -26,7 +26,7 @@ from .systools import load_config
 
 #ifile='/discover/nobackup/projects/gmao/geos_cf_dev/ana/openaq/data/Y2020/openaq_20200303.csv'
 #datecols=['ISO8601','localtime']
-#df_in = pd.read_csv(ifile,parse_dates=datecols,date_parser=lambda x: pd.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ'))
+#df_in = pd.read_csv(ifile,parse_dates=datecols,date_parser=lambda x: dt.datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ'))
 
 
 def cfobs2nc(df_in,ofile,res='1x1',obstypes=['o3','no2','pm25'],cols=['conc_mod','conc_obs'],times=None,unitcol='conc_unit',obs_filter_low=None,obs_filter_high=0.99):

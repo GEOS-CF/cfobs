@@ -27,7 +27,7 @@ def load(file_template,startday=None,endday=None,read_freq='1D',file_not_found_o
     startday = startday if startday is not None else dt.datetime(2018,1,1)
     endday   = endday   if endday   is not None else startday
     timesteps = pd.date_range(start=startday,end=endday,freq=read_freq).tolist()
-    dat = pd.DataFrame()
+    dat_list = []
     for idatetime in timesteps:
         ifile = parse_date(file_template,idatetime)
         if not os.path.isfile(ifile):
@@ -38,7 +38,8 @@ def load(file_template,startday=None,endday=None,read_freq='1D',file_not_found_o
                 log.error("Error: file not found: {}".format(ifile),exc_info=True)
                 return None 
         idat = _load_single_file(ifile,**kwargs)
-        dat  = dat.append(idat,sort=True)
+        dat_list.append(idat)
+    dat = pd.concat(dat_list,sort=True)
     return dat, startday, endday
 
 
@@ -55,7 +56,7 @@ def _load_single_file(ifile,to_float=False,round_minutes=False,filter=None,regio
         datecols.append('localtime')
     if 'ISO8601_init' in file_hdr:
         datecols.append('ISO8601_init')
-    dat = pd.read_csv(ifile,parse_dates=datecols,date_parser=lambda x: pd.datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'),**kwargs)
+    dat = pd.read_csv(ifile,parse_dates=datecols,date_parser=lambda x: dt.datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ'),**kwargs)
     if round_minutes:
         dat['ISO8601'] = [dt.datetime(i.year,i.month,i.day,i.hour,0,0) for i in dat['ISO8601']]
     # backward compatibility:
