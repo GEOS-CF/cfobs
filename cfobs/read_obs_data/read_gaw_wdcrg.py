@@ -129,6 +129,14 @@ def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
             obstype = 'no2'
             ocol = i
             ofnd = True
+        if 'sulfur_dioxide' in vals[0]:
+            obstype = 'so2'
+            ocol = i
+            ofnd = True
+        if 'sulphur_dioxide' in vals[0]:
+            obstype = 'so2'
+            ocol = i
+            ofnd = True
         # Unit check
         if ofnd:
             u = vals[1]
@@ -147,6 +155,12 @@ def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
                     scal = 46./14.
                 if obstype=='no':
                     scal = 30./14.
+            if 'ug S/m3' in u:
+                obsunit = 'ugm-3'
+                if obstype=='so2':
+                    scal = 64./32.
+    if ocol<0:
+        log.warning('Cannot find proper obstype - skip entry: {}'.format(ifile))
     if ocol<0:
         log.warning('Cannot find proper obstype - skip entry: {}'.format(ifile))
         return None
