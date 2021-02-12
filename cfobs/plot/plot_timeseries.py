@@ -26,7 +26,7 @@ from ..parse_string import parse_vars
 # PARAMETER
 MONTHSLABEL = ["J","F","M","A","M","J","J","A","S","O","N","D"]
 
-def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='ts_!t_%Y%m%d.png',subtitle='!n, !latN !lonE',ylabel='!t',leglabel=None,nrow=4,ncol=4,hscale=5,vscale=5,sort_by_lat=True,**kwargs):
+def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='ts_!t_%Y%m%d.png',subtitle='!n, !latN !lonE',ylabel='!t',leglabel=None,nrow=4,ncol=4,hscale=5,vscale=5,sort_by_lat=True,obstype2=None,**kwargs):
     '''
     Make timeseries of CF vs observation. 
     '''
@@ -38,6 +38,9 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
         log.warning('No data of obstype {} found!'.format(obstype))
         return
     df['Month'] = [i.month for i in df['ISO8601']]
+    if obstype2 is not None:
+        df2 = orig_df.loc[orig_df['obstype']==obstype2].copy()
+        df2['Month'] = [i.month for i in df2['ISO8601']]
     panel_names = df[by].unique() 
     npanels = len(panel_names)
     # Eventually reorder panel list so that data is sorted by latitude
@@ -56,6 +59,7 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
         fig = plt.figure(figsize=(hscale*ncol,vscale*nrow))
         for i in range(ncol*nrow):
             idf = df.loc[df[by]==panel_names[cnt]]
+            idf2 = df2.loc[df2[by]==panel_names[cnt]] if obstype2 is not None else None
             ilon  = idf.lon.values.mean()
             ilat  = idf.lat.values.mean()
             iname = str(panel_names[cnt])
@@ -65,7 +69,7 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
                 isbtitle = subtitle
             ititle = isbtitle.replace('!n',iname).replace('!lon','{0:.2f}'.format(ilon)).replace('!lat','{0:.2f}'.format(ilat))
             ax = fig.add_subplot(nrow,ncol,i+1)
-            ax,l1,l2 = make_timeseries(ax,i,idf,ititle,ylab,**kwargs) 
+            ax,l1,l2,l3 = make_timeseries(ax,i,idf,idf2,ititle,ylab,**kwargs) 
             cnt+=1
             if cnt==npanels:
                 break
@@ -74,8 +78,10 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
             title = parse_date(title,iday)
             fig.suptitle(title)
         leglabel = leglabel if leglabel is not None else ['CF','obs']
-        fig.legend( [l1,l2], leglabel, 'lower center', ncol=2)
-        #fig.legend( [l1,l2], ['CF','obs'], ncol=2)
+        if l3 is not None:
+            fig.legend( [l1,l3,l2], leglabel, 'lower center', ncol=3)
+        else: 
+            fig.legend( [l1,l2], leglabel, 'lower center', ncol=2)
         fig.tight_layout(rect=[0, 0.03, 1, 0.97])
         # add figure number
         if nfigures > 1:
@@ -89,7 +95,7 @@ def plot(orig_df,iday,obstype='o3',modvar=None,title=None,by='location',ofile='t
     return
 
 
-def make_timeseries(ax,i,idf,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,modcol='conc_mod',obscol='conc_obs',minval=None,maxval=None,modcolor='black',obscolor='red',xoffset=0.1,filter=None,groupby_value='Month',ninset=None):
+def make_timeseries(ax,i,idf,idf2,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,modcol='conc_mod',obscol='conc_obs',minval=None,maxval=None,modcolor='black',obscolor='red',xoffset=0.1,filter=None,groupby_value='Month',ninset=None,lw2=2,ls2='dashed',show_median=False):
     '''Make the timeseries at the given axis.'''
 
     log = logging.getLogger(__name__)
@@ -98,12 +104,21 @@ def make_timeseries(ax,i,idf,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,mo
         q_low = idf[obscol].quantile(1.0-filter)
         q_hi  = idf[obscol].quantile(filter)
         idf = idf.loc[(idf[obscol] < q_hi) & (idf[obscol] > q_low)] 
+        if idf2 is not None:
+            q_low = idf2[obscol].quantile(1.0-filter)
+            q_hi  = idf2[obscol].quantile(filter)
+            idf2 = idf2.loc[(idf2[obscol] < q_hi) & (idf2[obscol] > q_low)] 
     # Get grouped values 
     grp = idf.groupby(groupby_value)
-    mn = grp.mean().reset_index()
+    mn = grp.median().reset_index() if show_median else grp.mean().reset_index()
     sd = grp.std().reset_index()
     x1 = [i-xoffset for i in mn[groupby_value].values]
     x2 = [i+xoffset for i in mn[groupby_value].values]
+    if idf2 is not None:
+        grp2 = idf2.groupby(groupby_value)
+        mn2 = grp2.median().reset_index() if show_median else grp2.mean().reset_index()
+        sd2 = grp2.std().reset_index()
+        x1b = [i-xoffset for i in mn2[groupby_value].values]
     # select colors
     if type(modcolor)==type([]):
         modcolor = modcolor[np.mod(i,len(modcolor))]
@@ -111,6 +126,11 @@ def make_timeseries(ax,i,idf,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,mo
         obscolor = obscolor[np.mod(i,len(obscolor))]
     # make plot
     l1 = ax.errorbar(x=x1,y=mn[modcol],yerr=sd[modcol],fmt='-o',color=modcolor)
+    if idf2 is not None:
+        ax.plot(np.array(x1),np.array(mn2[modcol].values),color=modcolor,linewidth=lw2,linestyle=ls2)
+        l3 = mlines.Line2D([], [], color=modcolor,linewidth=lw2,linestyle=ls2)
+    else:
+        l3 = None
     l2 = ax.errorbar(x=x2,y=mn[obscol],yerr=sd[obscol],fmt='-o',color=obscolor)
     if xticks_loc is None:
         xticks_loc = np.arange(len(xlabel))+1
@@ -127,4 +147,4 @@ def make_timeseries(ax,i,idf,ititle,ylabel,xlabel=MONTHSLABEL,xticks_loc=None,mo
             ax.text(0.02,0.98,ilabel,horizontalalignment='left',verticalalignment='top',transform=ax.transAxes)
         else:
             log.warning('Cannot show number in inset - column {} not found'.format(ninset))
-    return ax,l1,l2
+    return ax,l1,l2,l3
