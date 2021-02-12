@@ -32,7 +32,7 @@ from ..read_cf import get_cf_map_taverage
 from ..regions import define_regions
 
 
-def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',labels=None,markers='o',markersize=5,ofile='locations.png',title='Observation locations',colors=['red','blue','pink','yellow','green'],regionsfile=None,colormap=True,markerscale=1.,**kwargs):
+def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',labels=None,markers='o',markersize=5,ofile='locations.png',title='Observation locations',colors=['red','blue','pink','yellow','green'],regionsfile=None,colormap=True,markerscale=1.,extent=None,**kwargs):
     '''Make a map with the locations of all measurement sites.'''
 
     log = logging.getLogger(__name__)
@@ -67,6 +67,8 @@ def plot(df,iday,types=None,typeby='obstype',groupby='original_station_name',lab
             ty = y1+3.0 if y1 < 0.0 else y2-3.0
             verta = 'bottom' if y1 < 0.0 else 'top'
             ax.text(x1+5.0,ty,s=r,ha='left',va=verta)
+    if extent is not None:
+        ax.set_extent(extent,crs=proj)
     fig.suptitle(title)
     fig.tight_layout(rect=[0, 0.05, 1, 0.97])
     #fig.tight_layout()
