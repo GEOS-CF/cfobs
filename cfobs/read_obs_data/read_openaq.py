@@ -191,7 +191,6 @@ def read_openaq_csv(ifile):
     '''
     Reads an OpenAQ csv file and writes its content to a data frame.
     '''
-
     log = logging.getLogger(__name__)
     log.info('reading {}'.format(ifile))
     ds = pd.read_csv(ifile,sep=",")
@@ -206,7 +205,7 @@ def read_openaq_csv(ifile):
     df['obstype']   = ds['parameter']
     df['unit']      = [get_unit(i) for i in ds['unit']]
     df['value']     = [np.float(i) for i in ds['value']]
-    df['source']    = ['OpenAQ csv: '+i.split('"name":')[1].split(',')[0] for i in ds['attribution']]
+    df['source']    = ['OpenAQ csv: '+i.split('"name":')[1].split(',')[0] if type(i)==type('') else 'OpenAQ csv' for i in ds['attribution']]
     # cleanup
     nline = df.shape[0]
     nerr  = 0
