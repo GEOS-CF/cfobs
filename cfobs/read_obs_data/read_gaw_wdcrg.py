@@ -154,7 +154,7 @@ def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0,preferred_u
                     iscal = 30./14.
             if 'ug S/m3' in u:
                 iobsunit = 'ugm-3'
-                if iobstype=='so2':
+                if obstype=='so2':
                     iscal = 64./32.
             # eventually pass to main values. Don't update main values if they
             # already denote the column with the data in the preferred units
