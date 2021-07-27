@@ -76,3 +76,13 @@ def to_ppbv(df,conv_ugm3_to_ppbv=None,convscal=1.0,temp=None,press=None,mw=1.0,
     if len(iidx>0):
         df.loc[iidx,colname] = df.loc[iidx,colname]*PPM2PPB
     return df
+
+
+def conv_unit(df,obstype,iunit,ounit,factor):
+    '''
+    Converts the values of a certain obstype and input unit (iunit) to a specified output unit (ounit)
+    based on a constant conversion factor (factor).
+    '''
+    df.loc[(df.obstype==obstype)&(df.unit==iunit),'value']=df.loc[(df.obstype==obstype)&(df.unit==iunit),'value']*factor
+    df.loc[(df.obstype==obstype)&(df.unit==iunit),'unit'] = ounit
+    return df
