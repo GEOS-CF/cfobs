@@ -107,7 +107,7 @@ def read_cf_data_2d(idate,config=None,config_file=None,suppress_messages=False):
             log.info('Reading {}'.format(ifile))
         if '*' in ifile:
             try:
-                ds = xr.open_mfdataset(ifile)
+                ds = xr.open_mfdataset(ifile)  #,combine='by_coords')
             except:
                 log.error('Error reading {}.'.format(ifile), exc_info=True)
                 return -1, dat
@@ -169,7 +169,7 @@ def get_cf_map_taverage(ifiles,startday,endday,varnames,scale_factor,season_name
     log = logging.getLogger(__name__)
     log.info('Compute time-averaged CF global map from {}'.format(ifiles))
     if len(glob.glob(ifiles))>1:
-        ds = xr.open_mfdataset(ifiles)
+        ds = xr.open_mfdataset(ifiles) #,combine='by_coords')
     else:
         ds = xr.open_dataset(ifiles)
         ds = ds.sel(time=slice(startday,endday))
