@@ -22,7 +22,10 @@ from .table_of_stations import write_locations_to_yaml as write_locations_to_yam
 from .add_cf_to_obs import add_cf as addcf 
 from .popdensity import set_popdens
 from .cfobs2nc import cfobs2nc
-
+from .units import conv_unit
+from .compact import compact_dat
+from .compact import compact_addcf
+from .compact import compact_plot
 
 class CFObs(object):
     '''
@@ -35,6 +38,7 @@ class CFObs(object):
         self._startday = None 
         self._endday   = None 
         self._data     = pd.DataFrame()
+        self._cdat     = None
         if ifile is not None:
             self.load(ifile,**kwargs)
 
@@ -100,3 +104,18 @@ class CFObs(object):
         '''Write all unique location information to a YAML file'''
         write_locations_to_yaml(self._data,**kwargs)
 
+    def conv_unit(self, **kwargs):
+        '''Convert units'''
+        self._data = conv_unit(self._data, **kwargs)
+
+    def compact_dat(self, label, **kwargs):
+        '''Wrapper function to create compact array'''
+        self._cdat = compact_dat(self._data, label, **kwargs)
+
+    def compact_addcf(self, label, **kwargs):
+        '''Wrapper function to add CF data to compact array'''
+        self._cdat = compact_addcf(self._cdat, label, **kwargs)
+
+    def compact_plot(self, **kwargs):
+        '''Wrapper function to plot compact data '''
+        self._cdat = compact_plot(self._cdat, **kwargs)

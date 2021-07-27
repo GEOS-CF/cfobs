@@ -16,3 +16,4 @@ yaml
 json
 requests
 tqdm
+seaborn
