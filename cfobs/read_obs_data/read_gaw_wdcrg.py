@@ -49,7 +49,7 @@ def read_gaw_wdcrg(iday=None,ifiles='unknown',**kwargs):
     return df
 
 
-def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
+def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0,preferred_unit='ppbv'):
     '''Read a single GAW WDCRG file.'''
     import nappy
     log = logging.getLogger(__name__)
@@ -112,6 +112,7 @@ def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
     # get observation type, unit, and values. This is currently hard-coded,
     # could probably be done better.
     ocol = -1
+    obsunit = None; scal = None
     for i,v in enumerate(vnames):
         # Skip standard deviation 
         if 'stddev' in v:
@@ -120,47 +121,47 @@ def _read_single_file(ifile,firstday=None,lastday=None,time_offset=0):
             continue
         # Species check
         vals = v.split(',')
-        ofnd = False
+        icol = -1
         if 'ozone' in vals[0]:
             obstype = 'o3'
-            ocol = i
-            ofnd = True
+            icol = i
         if 'nitrogen_dioxide' in vals[0]:
             obstype = 'no2'
-            ocol = i
-            ofnd = True
+            icol = i
         if 'sulfur_dioxide' in vals[0]:
             obstype = 'so2'
-            ocol = i
-            ofnd = True
+            icol = i
         if 'sulphur_dioxide' in vals[0]:
             obstype = 'so2'
-            ocol = i
-            ofnd = True
+            icol = i
         # Unit check
-        if ofnd:
+        if icol==i:
             u = vals[1]
             if 'nmol/mol' in u:
-                obsunit = 'ppbv'
-                scal = 1.0 
+                iobsunit = 'ppbv'
+                iscal = 1.0 
             if 'mmol/mol' in u:
-                obsunit = 'ppmv'
-                scal = 1.0 
+                iobsunit = 'ppmv'
+                iscal = 1.0 
             if 'ug/m3' in u:
-                obsunit = 'ugm-3'
-                scal = 1.0 
+                iobsunit = 'ugm-3'
+                iscal = 1.0 
             if 'ug N/m3' in u:
-                obsunit = 'ugm-3'
+                iobsunit = 'ugm-3'
                 if obstype=='no2':
-                    scal = 46./14.
+                    iscal = 46./14.
                 if obstype=='no':
-                    scal = 30./14.
+                    iscal = 30./14.
             if 'ug S/m3' in u:
-                obsunit = 'ugm-3'
-                if obstype=='so2':
-                    scal = 64./32.
-    if ocol<0:
-        log.warning('Cannot find proper obstype - skip entry: {}'.format(ifile))
+                iobsunit = 'ugm-3'
+                if iobstype=='so2':
+                    iscal = 64./32.
+            # eventually pass to main values. Don't update main values if they
+            # already denote the column with the data in the preferred units
+            if obsunit is not preferred_unit:
+                ocol = icol
+                obsunit = iobsunit
+                scal = iscal
     if ocol<0:
         log.warning('Cannot find proper obstype - skip entry: {}'.format(ifile))
         return None
