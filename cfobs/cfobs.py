@@ -118,4 +118,4 @@ class CFObs(object):
 
     def compact_plot(self, **kwargs):
         '''Wrapper function to plot compact data '''
-        self._cdat = compact_plot(self._cdat, **kwargs)
+        compact_plot(self._cdat, **kwargs)
